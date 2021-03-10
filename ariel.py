@@ -4,6 +4,7 @@ import requests
 import re
 import logging
 from os import listdir
+from os import path
 
 def get_videos_page(videos_url: str, ariel_email: str, ariel_password: str):
     with requests.Session() as s:
@@ -17,23 +18,30 @@ def get_videos_page(videos_url: str, ariel_email: str, ariel_password: str):
         s.post(login_url, data=payload)
         return s.get(videos_url)
 
-def get_manifests(videos_page):
+def get_manifests(videos_page) -> list[str]:
     manifest_regex = re.compile(r"https://.*/manifest\.m3u8")
     match = manifest_regex.findall(videos_page.text)
+    logging.debug(match)
     return match
 
-
-def download(manifest, videos_url):
-    prefix = videos_url.removeprefix("https://")
-    prefix = prefix[:prefix.find(".")]
-    number = filename_number(prefix)
-    filename = "unimi-dl_output/" + prefix + \
-        "_" + number + '.%(ext)s'
+def download(manifest_url: str, videos_url: str, dst_dir: str):
+#    prefix = videos_url.removeprefix("https://")
+#    prefix = prefix[:prefix.find(".")]
+    filename = manifest_url.removeprefix("https://videolectures.unimi.it/vod/mp4:")
+    filename = filename.removesuffix("/manifest.m3u8")
+    filename = filename.replace('%','_');
+    filename = filename.replace('(','_');
+    filename = filename.replace(')','_');
+    filename = path.join(dst_dir, filename)
+    logging.debug(f'Downloading {manifest_url} and saved as {filename}')
+    #number = filename_number(prefix)
+#    filename = "unimi-dl_output/" + prefix + \
+#        "_" + number + '.%(ext)s'
     #  filename = prefix + filename_number(prefix) + '.%(ext)s'
     ydl_opts = {'nocheckcertificate': 'true',
                 'restrictfilenames': 'true', 'outtmpl': filename}
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([manifest])
+        ydl.download([manifest_url])
         # print("downloading %s as %s" % (manifest, filename))
 
 def filename_number(prefix):
@@ -41,7 +49,7 @@ def filename_number(prefix):
     file_regex = re.compile(prefix + r'_\d\d\d\.', re.IGNORECASE)
     number_regex = re.compile(r'\d+')
     retval = 1
-    print(ls)
+    logging.info(ls)
     for file in ls:
         match = file_regex.match(file)
         if match:

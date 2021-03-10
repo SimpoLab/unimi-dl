@@ -30,7 +30,7 @@ def main():
     logging.basicConfig(level=log_level[args.verbose])
 
     videos_url  = args.url
-    cached      = "unimi-dl_downloaded.json"
+    cache      = "unimi-dl_downloaded.json"
     credentials = json.load(open(args.credentials, "r"))
     ariel_email = credentials['ariel_email']
     ariel_password = credentials['ariel_password']
@@ -40,17 +40,17 @@ def main():
 
     videos_page = ariel.get_videos_page(videos_url, ariel_email, ariel_password)
     manifests = ariel.get_manifests(videos_page)
-    downloaded_json = json.load(open(cached, "r"))
+    downloaded_json = json.load(open(cache, "r"))
     dl_json_changed = False
     logging.info(manifests)
     for manifest in manifests:
         logging.info("manifest = " + manifest + "\n")
         if manifest not in downloaded_json['ariel']:
-            ariel.download(manifest, videos_url)
+            ariel.download(manifest, videos_url, args.output)
             downloaded_json['ariel'].append(manifest)
             dl_json_changed = True
     if dl_json_changed:
-        open(cached, "w").write(json.dumps(downloaded_json))
+        open(cache, "w").write(json.dumps(downloaded_json))
     logging.info("Finito download")
 
 if __name__ == '__main__':
