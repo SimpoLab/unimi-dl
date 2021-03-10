@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-import requests
-import json
-from sys import argv
-import re
 from os import listdir
-import youtube_dl
 import argparse
+import json
 import logging
+import re
+import requests
+import youtube_dl
+
 
 def ariel_get_credentials():
     raw_json = json.load(open("unimi-dl_credentials.json", "r"))
@@ -61,13 +61,15 @@ def filename_number(prefix):
                 retval = num+1
     return '%03d' % retval
 
+
 def main():
     parser = argparse.ArgumentParser(description="UniMi's material downloader")
     parser.add_argument('url', metavar='url', type=str)
-    parser.add_argument('--credentials', metavar='credentials', type=str, default='./unimi-dl_credentials.json')
+    parser.add_argument('--credentials', metavar='credentials',
+                        type=str, default='./unimi-dl_credentials.json')
     parser.add_argument('--output', metavar='output', type=str, default='./')
-    parser.add_argument('--verbose', metavar='verbose', type=str, default='WARNING', 
-        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET'])
+    parser.add_argument('--verbose', metavar='verbose', type=str, default='WARNING',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET'])
 
     args = parser.parse_args()
 
@@ -90,13 +92,13 @@ def main():
     downloaded_json = json.load(open("unimi-dl_downloaded.json", "r"))
     dl_json_changed = False
     for manifest in manifests:
-        if manifeddst not in downloaded_json['ariel']:
+        if manifest not in downloaded_json['ariel']:
             ariel_downloadfrommanifest(manifest, videos_URL)
             downloaded_json['ariel'].append(manifest)
             dl_json_changed = True
     if dl_json_changed:
         open("unimi-dl_downloaded.json", "w").write(json.dumps(downloaded_json))
 
+
 if __name__ == '__main__':
     main()
-
