@@ -29,9 +29,7 @@ def download(manifest_url: str, videos_url: str, dst_dir: str):
 #    prefix = prefix[:prefix.find(".")]
     filename = manifest_url.removeprefix("https://videolectures.unimi.it/vod/mp4:")
     filename = filename.removesuffix("/manifest.m3u8")
-    filename = filename.replace('%','_');
-    filename = filename.replace('(','_');
-    filename = filename.replace(')','_');
+    filename = filename.replace('%','%%'); #escaping % for youtube-dl
     filename = path.join(dst_dir, filename)
     logging.debug(f'Downloading {manifest_url} and saved as {filename}')
     #number = filename_number(prefix)

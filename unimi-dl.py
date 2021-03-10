@@ -15,7 +15,7 @@ def main():
     parser.add_argument('url', metavar='url', type=str)
     parser.add_argument('--credentials', metavar="path", type=str, default='./unimi-dl_credentials.json')
     parser.add_argument('--output', metavar="path", type=str, default='./')
-    parser.add_argument('--verbose', metavar='log level', type=str, default='WARNING', 
+    parser.add_argument('--verbose', metavar='log level', type=str, nargs='?', default='WARNING', const='DEBUG',
         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET'])
 
     args = parser.parse_args()
