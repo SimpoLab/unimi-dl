@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-from os import listdir
 import json
-from os import listdir
-import re
 import argparse
 import json
 import logging
