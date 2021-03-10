@@ -5,27 +5,16 @@ import re
 import logging
 from os import listdir
 
-#def get_credentials():
-#    raw_json = json.load(open("unimi-dl_credentials.json", "r"))
-#    payload = {'hdnSilent': 'true'}
-#    if 'ariel_email' in raw_json:
-#        payload['tbLogin'] = raw_json['ariel_email']
-#    if 'ariel_password' in raw_json:
-#        payload['tbPassword'] = raw_json['ariel_password']
-#    return payload
-
 def get_videos_page(videos_url: str, ariel_email: str, ariel_password: str):
     with requests.Session() as s:
         login_url = 'https://elearning.unimi.it/authentication/skin/portaleariel/login.aspx?url=https://ariel.unimi.it/'
 
-#        payload = get_credentials()
+        #login
         payload = {'hdnSilent': 'true'}
         payload['tbLogin'] = ariel_email
         payload['tbPassword'] = ariel_password
-
         logging.info(f'payload = {payload}')
-        s.post(login_url, data=payload)  # login
-
+        s.post(login_url, data=payload)
         return s.get(videos_url)
 
 def get_manifests(videos_page):
