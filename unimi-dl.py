@@ -6,7 +6,8 @@ from sys import argv
 import re
 from os import listdir
 import youtube_dl
-
+import argparse
+import logging
 
 def ariel_get_credentials():
     raw_json = json.load(open("unimi-dl_credentials.json", "r"))
@@ -60,16 +61,42 @@ def filename_number(prefix):
                 retval = num+1
     return '%03d' % retval
 
+def main():
+    parser = argparse.ArgumentParser(description="UniMi's material downloader")
+    parser.add_argument('url', metavar='url', type=str)
+    parser.add_argument('--credentials', metavar='credentials', type=str, default='./unimi-dl_credentials.json')
+    parser.add_argument('--output', metavar='output', type=str, default='./')
+    parser.add_argument('--verbose', metavar='verbose', type=str, default='WARNING', 
+        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET'])
 
-videos_URL = argv[1]
-videos_page = ariel_get_videos_page(videos_URL)
-manifests = ariel_get_manifests(videos_page)
-downloaded_json = json.load(open("unimi-dl_downloaded.json", "r"))
-dl_json_changed = False
-for manifest in manifests:
-    if manifest not in downloaded_json['ariel']:
-        ariel_downloadfrommanifest(manifest, videos_URL)
-        downloaded_json['ariel'].append(manifest)
-        dl_json_changed = True
-if dl_json_changed:
-    open("unimi-dl_downloaded.json", "w").write(json.dumps(downloaded_json))
+    args = parser.parse_args()
+
+    print(args.verbose)
+    log_level = {
+        'CRITICAL': 50,
+        'ERROR': 40,
+        'WARNING': 30,
+        'INFO': 20,
+        'DEBUG': 10,
+        'NOTSET': 0
+    }
+
+    logging.basicConfig(level=log_level[args.verbose])
+
+    print(args.url)
+    videos_URL = args.url
+    videos_page = ariel_get_videos_page(videos_URL)
+    manifests = ariel_get_manifests(videos_page)
+    downloaded_json = json.load(open("unimi-dl_downloaded.json", "r"))
+    dl_json_changed = False
+    for manifest in manifests:
+        if manifeddst not in downloaded_json['ariel']:
+            ariel_downloadfrommanifest(manifest, videos_URL)
+            downloaded_json['ariel'].append(manifest)
+            dl_json_changed = True
+    if dl_json_changed:
+        open("unimi-dl_downloaded.json", "w").write(json.dumps(downloaded_json))
+
+if __name__ == '__main__':
+    main()
+
