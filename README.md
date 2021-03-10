@@ -1,6 +1,4 @@
 # unimi-dl
-[WIP]
-
 Script in Python 3 per scaricare videolezioni dai portali usati da Unimi.
 
 Al momento l'unico portale supportato è Ariel
@@ -40,34 +38,15 @@ python unimi-dl.py "https://unsito.ariel.ctu.unimi.it/paginadelleregistrazioni"
 # Disclaimer
 [WIP]
 
-
-# Contribute
-[WIP]
+No, non è illegale.
 
 
+# Contributing
+Sul progetto [General TODO] si trovano i prossimi obiettivi stabiliti dai mantainer principali. Se hai intenzione di sviluppare una di tali feature, controlla prima che non sia negli "In progress" del progetto e nella discussion [Working on] per assicurarti che non ci stia già lavorando qualcuno. Sia se vuoi implementare uno dei sopracitati obiettivi (specialmente in questo caso), sia se vuoi sviluppare una personale idea, ti preghiamo di notificarlo nella suddetta discussion.
 
-## TODO
-Nota: i TODO non sono vincolanti.
+Se non hai accesso diretto alla repo, forkala, implementa la tua proposta di modifica in una branch nominata appropriatamente e apri una pull request.
 
-### Funzionamento
-- [ ] decidere dove creare la main directory, ossia quella con output e json. Candidati: home (windows?), directory corrente
+Se sei un mantainer principale (con accesso diretto alla repo), puoi direttamente modificare il project ignorando la discussion.
 
-### Flags
-- [ ] scegliere path del file json degli credenziali
-- [ ] scegliere path del file json degli scaricati
-- [ ] scegliere path della directory dei video
-- [ ] scegliere path della main directory (overridato dai soprastanti)
-- [ ] generare automaticamente un template json per salvare le credenziali
-- [ ] immettere credenziali (warning: shell history) - idea: invece di inserirle direttamente a riga di comando potrebbe essere un flag che attiva la richiesta di immetterle a stdin (password nascoste) a inizio esecuzione
-- [ ] verbose
-
-### Features
-- [ ] pip package per installazione facile
-- [ ] supportare ms stream, panopto, youtube
-- [ ] creare automaticamente il json degli scaricati se non presente
-- [ ] rilevare se i percorsi di directory e file sono validi, se i file sono leggibili/scrivibili, etc.
-- [ ] creare directory che accomuna i video di un prefix
-- [ ] log
-- [ ] gestire meglio l'output in funzione di log e verbose
-- [ ] se necessario, menu per scegliere tra i manifest (se possibile, parsing per capire un titolo sensato del video relativo a un manifest)
-- [ ] GUI
+[Working on]: (https://github.com/aclerici-unimi/unimi-dl/discussions/categories/working-on)
+[General TODO]: (https://github.com/aclerici-unimi/unimi-dl/projects/1)
