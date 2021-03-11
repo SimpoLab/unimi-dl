@@ -44,7 +44,7 @@ def main():
     logging.info(manifests)
     for manifest in manifests:
         if manifest not in downloaded_json['ariel']:
-            ariel.download(manifest, videos_url, args.output)
+            ariel.download(manifest, args.output)
             downloaded_json['ariel'].append(manifest)
             dl_json_changed = True
     if dl_json_changed:
