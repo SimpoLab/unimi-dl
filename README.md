@@ -48,11 +48,16 @@ Se non hai accesso diretto alla repo, forkala, implementa la tua proposta di mod
 
 Se sei un mantainer principale (con accesso diretto alla repo), puoi direttamente modificare il project ignorando la discussion.
 
-### Code etiquette
-- ogni portale ha un modulo suo
-- gli import vanno in ordine alfabetico (`:sort`)
-- 
-
-
 [Working on]: (https://github.com/aclerici-unimi/unimi-dl/discussions/categories/working-on)
 [General TODO]: (https://github.com/aclerici-unimi/unimi-dl/projects/1)
+
+
+### Code etiquette
+- inserire la documentazione quantomeno nelle funzioni e classi principali
+- ogni portale ha un modulo suo
+- inserire più [type hinting] possibile
+- usare la libreria standard a meno che sia particolarmente scomodo
+- gli import vanno in ordine alfabetico (`:sort`)
+- delimitare le stringhe con `"`
+
+[type hinting]: (https://realpython.com/lessons/type-hinting/)
