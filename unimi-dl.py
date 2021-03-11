@@ -6,7 +6,6 @@ import json
 import logging
 import ariel
 
-
 def main():
     parser = argparse.ArgumentParser(description="UniMi's material downloader")
     parser.add_argument('url', metavar='url', type=str)
