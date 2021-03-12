@@ -4,7 +4,7 @@ import json
 import argparse
 import json
 import logging
-import ariel
+from downloader_creator import createDownloader
 
 def main():
     parser = argparse.ArgumentParser(description="UniMi's material downloader")
@@ -28,26 +28,31 @@ def main():
     logging.basicConfig(level=log_level[args.verbose])
 
     videos_url  = args.url
-    cache      = "unimi-dl_downloaded.json"
+    cache       = "unimi-dl_downloaded.json"
+    platform    = "ariel"
     credentials = json.load(open(args.credentials, "r"))
-    ariel_email = credentials['ariel_email']
-    ariel_password = credentials['ariel_password']
+    email       = credentials["ariel_email"]
+    password    = credentials["ariel_password"]
 
-    if ariel_email == None or ariel_password == None:
+    if email == None or password == None:
         logging.warning("Mi servono le credenziali!")
+        exit()
 
-    videos_page = ariel.get_videos_page(videos_url, ariel_email, ariel_password)
-    manifests = ariel.get_manifests(videos_page)
+    downloader   = createDownloader(email, password, platform)
+    videos_links = downloader.get_videos(videos_url)
     downloaded_json = json.load(open(cache, "r"))
     dl_json_changed = False
-    logging.info(manifests)
-    for manifest in manifests:
-        if manifest not in downloaded_json['ariel']:
-            ariel.download(manifest, args.output)
-            downloaded_json['ariel'].append(manifest)
+
+    logging.info(videos_links)
+
+    for link in videos_links:
+        if link not in downloaded_json[platform]:
+            downloader.download(link, args.output)
+            downloaded_json[platform].append(link)
             dl_json_changed = True
     if dl_json_changed:
-        open(cache, "w").write(json.dumps(downloaded_json))
+        f = open(cache, "w")
+        f.write(json.dumps(downloaded_json))
 
     logging.info("Finito download")
 

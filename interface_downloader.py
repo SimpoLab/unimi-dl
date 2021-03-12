@@ -1,19 +1,16 @@
-from ariel import ArielDownloader
 from __future__ import annotations
 
-
 class Downloader:
-    def __init__(self, username: str, password: str) -> None:
-        self.username = username
+    def __init__(self, email: str, password: str) -> None:
+        self.email    = email
         self.password = password
-        pass
 
-    def download(self):
-        pass
+    def get_videos(self, url: str) -> list[str]:
+        """ Returns a list of links, which corresponds to the videos available for download, from the {url}
+        {url} must be the root page where the videos are published"""
+        raise NotImplementedError
 
-    @staticmethod
-    def createDownloader(username: str, password: str, platform: str) -> Downloader:
-        if platform == 'ariel':
-            return ArielDownloader(username, password)
-        
-        
+    def download(self, url: str, dst: str):
+        """ Downloads file from the provided {url} and saves it in {dst}
+        Note that the path should include the name to be assigned to the downloaded file"""
+        raise NotImplementedError

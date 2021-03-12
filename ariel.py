@@ -8,24 +8,32 @@ from os import path
 from interface_downloader import Downloader as DownloaderInterface
 
 class ArielDownloader(DownloaderInterface):
-    def __init__(self, username: str, password: str) -> ArielDownloader:
-        super().__init__(username, password)
+    def __init__(self, email: str, password: str) -> None:
+        super().__init__(email, password)
 
-    def get_videos_page(self, videos_url: str, ariel_email: str, ariel_password: str):
+    def get_videos_page(self, url: str):
         with requests.Session() as s:
             login_url = 'https://elearning.unimi.it/authentication/skin/portaleariel/login.aspx?url=https://ariel.unimi.it/'
 
             #login
-            payload = {'hdnSilent': 'true'}
-            payload['tbLogin'] = ariel_email
-            payload['tbPassword'] = ariel_password
+            payload               = {'hdnSilent': 'true'}
+            payload['tbLogin']    = self.email
+            payload['tbPassword'] = self.password
             logging.info(f'payload = {payload}')
             s.post(login_url, data=payload)
-            return s.get(videos_url)
+            return s.get(url)
 
     def get_manifests(self, videos_page) -> list[str]:
         manifest_regex = re.compile(r"https://.*/manifest\.m3u8")
         match = manifest_regex.findall(videos_page.text)
+        logging.debug(match)
+        return match
+
+    def get_videos(self, url) -> list[str]:
+        manifest_regex = re.compile(r"https://.*/manifest\.m3u8")
+        page           = self.get_videos_page(url)
+        match          = manifest_regex.findall(page.text)
+
         logging.debug(match)
         return match
 
