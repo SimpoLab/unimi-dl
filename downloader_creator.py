@@ -1,5 +1,6 @@
-from interface_downloader import Downloader
 from ariel import ArielDownloader
+from interface_downloader import Downloader
+
 
 def createDownloader(email: str, password: str, platform: str) -> Downloader:
     """ Factory method to create the appropriate downloader for the request platform
