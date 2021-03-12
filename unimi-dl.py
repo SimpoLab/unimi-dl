@@ -46,18 +46,17 @@ def main():
 
     downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(videos_url)
-    with open(cache, "r") as downloaded_json:
+    with open(cache, "r+") as downloaded_json:
         downloaded = json.load(downloaded_json)
-
-    with open(cache, "w") as downloaded_json:
         logging.info(videos_links)
-
         for link in videos_links:
             if link not in downloaded[platform]:
+                downloaded_json.seek(0)
                 downloader.download(link, args.output)
                 downloaded[platform].append(link)
+                downloaded_json.write(json.dumps(downloaded))
+                downloaded_json.truncate()
             # maybe substitute with json.dump ?
-            downloaded_json.write(json.dumps(downloaded))
 
     logging.info("downloaded")
 
