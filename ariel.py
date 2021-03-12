@@ -1,4 +1,4 @@
-import logging
+from __future__ import annotations
 import youtube_dl
 import requests
 import re
@@ -8,7 +8,7 @@ from os import path
 from interface_downloader import Downloader as DownloaderInterface
 
 class ArielDownloader(DownloaderInterface):
-    def __init__(self, username: str, password: str) -> None:
+    def __init__(self, username: str, password: str) -> ArielDownloader:
         super().__init__(username, password)
 
     def get_videos_page(self, videos_url: str, ariel_email: str, ariel_password: str):
