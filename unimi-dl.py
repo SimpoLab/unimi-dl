@@ -32,6 +32,7 @@ def get_datadir() -> pathlib.Path:
 
 def main():
     local = os.path.join(get_datadir(), "unimi-dl")
+    os.mkdir(local)
 
     parser = argparse.ArgumentParser(description="UniMi's material downloader")
     parser.add_argument("url", metavar="URL", type=str,
@@ -39,6 +40,8 @@ def main():
     parser.add_argument("-p", "--platform", metavar="platform",
         type=str, default="ariel", choices=["ariel"], 
         help="platform to download the video(s) from")
+    parser.add_argument("-s", "--save", action="store_true",
+        help=f"Saves credentials in {local}")
     parser.add_argument("-c", "--credentials", metavar="PATH",
         type=str, default=os.path.join(local, "credentials.json"), 
         help="credentials to be used for logging into the platform")
@@ -63,21 +66,41 @@ def main():
     logging.basicConfig(level=log_level[args.verbose])
     logging.debug(f"local = {local}")
     cache = os.path.join(local, "downloaded.json")
-    credentials = json.load(open(args.credentials, "r"))  # to check
+
+    try:
+        with open(args.credentials, "r") as cred:
+            credentials = json.load(cred)  # to check
+    except FileNotFoundError:
+        credentials = {}
 
     videos_url = args.url
     platform = args.platform
-    email = credentials[platform]["email"]
-    password = credentials[platform]["password"]
 
+    try:
+        email = credentials[platform]["email"]
+        password = credentials[platform]["password"]
+    except KeyError:
+        #handled in the following 
+        email = None
+        password = None
+
+    #checking
     if email == None or password == None:
-        logging.error(f"Missing credentials for platform {platform}")
-        with open(args.credentials, "r+") as new_credentials:
-        
+        logging.warning(f"Missing credentials for platform '{platform}'")
+        email    = input(f"Insert your username/email for '{platform}' platform\nusername/email=")
+        password = getpass.getpass(f"Insert your password for the user '{email}' and '{platform}' platform (Note that input won't be shown)\n")
+
+        if args.save:
+            credentials[platform] = {"email" : email}
+            credentials[platform] = {"password" : password}
+            with open(args.credentials, "w") as new_credentials:
+                new_credentials.write(json.dumps(credentials))
+
+            logging.info(f"Credentials saved succesfully in {local}")
 
     downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(videos_url)
-    with open(cache, "r+") as downloaded_json:
+    with open(cache, "rw") as downloaded_json:
         downloaded = json.load(downloaded_json)
         logging.info(videos_links)
         for link in videos_links:
