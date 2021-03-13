@@ -32,7 +32,9 @@ def get_datadir() -> pathlib.Path:
 
 def main():
     local = os.path.join(get_datadir(), "unimi-dl")
-    os.mkdir(local)
+
+    if not os.path.isdir(local):
+        os.mkdir(local)
 
     parser = argparse.ArgumentParser(description="UniMi's material downloader")
     parser.add_argument("url", metavar="URL", type=str,
@@ -66,21 +68,22 @@ def main():
     logging.basicConfig(level=log_level[args.verbose])
     logging.debug(f"local = {local}")
     cache = os.path.join(local, "downloaded.json")
+    videos_url = args.url
+    platform = args.platform
 
     try:
         with open(args.credentials, "r") as cred:
             credentials = json.load(cred)  # to check
     except FileNotFoundError:
         credentials = {}
+        credentials[platform] = {"email" : None, "password" : None}
 
-    videos_url = args.url
-    platform = args.platform
+    platform = 'prova'
 
     try:
         email = credentials[platform]["email"]
         password = credentials[platform]["password"]
     except KeyError:
-        #handled in the following 
         email = None
         password = None
 
@@ -91,8 +94,8 @@ def main():
         password = getpass.getpass(f"Insert your password for the user '{email}' and '{platform}' platform (Note that input won't be shown)\n")
 
         if args.save:
-            credentials[platform] = {"email" : email}
-            credentials[platform] = {"password" : password}
+            credentials[platform] = {"email" : email, "password" : password}
+            print(credentials)
             with open(args.credentials, "w") as new_credentials:
                 new_credentials.write(json.dumps(credentials))
 
