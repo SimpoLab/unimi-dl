@@ -3,22 +3,50 @@
 from downloader_creator import createDownloader
 import argparse
 import json
-import json
 import logging
+import pathlib
+import sys
+import os
+import getpass
 
+def get_datadir() -> pathlib.Path:
+    """
+    Returns a parent directory path
+    where persistent application data can be stored.
+
+    # linux: ~/.local/share
+    # macOS: ~/Library/Application Support
+    # windows: C:/Users/<USER>/AppData/Roaming
+    """
+
+    home = pathlib.Path.home()
+
+    if sys.platform == "win32":
+        return home / "AppData/Roaming"
+    elif sys.platform == "linux":
+        return home / ".local/share"
+    elif sys.platform == "darwin":
+        return home / "Library/Application Support"
+    else:
+        raise NotImplementedError
 
 def main():
+    local = os.path.join(get_datadir(), "unimi-dl")
+
     parser = argparse.ArgumentParser(description="UniMi's material downloader")
     parser.add_argument("url", metavar="URL", type=str,
-                        help="URL of the video(s) to download")
+        help="URL of the video(s) to download")
     parser.add_argument("-p", "--platform", metavar="platform",
-                        type=str, default="ariel", choices=["ariel"], help="platform to download the video(s) from")
+        type=str, default="ariel", choices=["ariel"], 
+        help="platform to download the video(s) from")
     parser.add_argument("-c", "--credentials", metavar="PATH",
-                        type=str, default="./unimi-dl_credentials.json", help="credentials to be used for logging into the platform")
+        type=str, default=os.path.join(local, "credentials.json"), 
+        help="credentials to be used for logging into the platform")
     parser.add_argument("-o", "--output", metavar="PATH",
-                        type=str, default="./", help="path to download the video(s) into")
+        type=str, default="./", help="path to download the video(s) into")
     parser.add_argument("-v", "--verbose", metavar="log level", type=str, nargs="?", default="WARNING", const="DEBUG",
-                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], help="verbosity level")
+        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], help="verbosity level")
+
 
     args = parser.parse_args()
 
@@ -31,18 +59,21 @@ def main():
         "NOTSET": 0
     }
 
+    #init
     logging.basicConfig(level=log_level[args.verbose])
+    logging.debug(f"local = {local}")
+    cache = os.path.join(local, "downloaded.json")
+    credentials = json.load(open(args.credentials, "r"))  # to check
 
     videos_url = args.url
-    cache = "unimi-dl_downloaded.json"
     platform = args.platform
-    credentials = json.load(open(args.credentials, "r"))  # to check
-    email = credentials["ariel_email"]
-    password = credentials["ariel_password"]
+    email = credentials[platform]["email"]
+    password = credentials[platform]["password"]
 
     if email == None or password == None:
-        logging.error("missing credentials")
-        exit()
+        logging.error(f"Missing credentials for platform {platform}")
+        with open(args.credentials, "r+") as new_credentials:
+        
 
     downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(videos_url)
@@ -59,7 +90,6 @@ def main():
             # maybe substitute with json.dump ?
 
     logging.info("downloaded")
-
 
 if __name__ == "__main__":
     main()
