@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-from downloader_creator import createDownloader
 import argparse
+import getpass
 import json
 import logging
+import os
 import pathlib
 import sys
-import os
-import getpass
+
+from downloader_creator import createDownloader
 
 def get_datadir() -> pathlib.Path:
     """
@@ -102,7 +103,14 @@ def main():
     downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(videos_url)
     with open(cache, "w+") as downloaded_json:
-        downloaded = json.load(downloaded_json)
+        try:
+            downloaded = json.load(downloaded_json)
+        except json.decoder.JSONDecodeError: #downloaded is empty
+            downloaded = { platform: []}
+
+        if platform not in downloaded.keys():
+            downloaded[platform] = []
+
         logging.info(videos_links)
         for link in videos_links:
             if link not in downloaded[platform]:
