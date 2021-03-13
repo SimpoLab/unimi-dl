@@ -78,8 +78,6 @@ def main():
         credentials = {}
         credentials[platform] = {"email" : None, "password" : None}
 
-    platform = 'prova'
-
     try:
         email = credentials[platform]["email"]
         password = credentials[platform]["password"]
@@ -103,7 +101,7 @@ def main():
 
     downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(videos_url)
-    with open(cache, "rw") as downloaded_json:
+    with open(cache, "w+") as downloaded_json:
         downloaded = json.load(downloaded_json)
         logging.info(videos_links)
         for link in videos_links:
