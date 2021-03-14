@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
+from getpass import getpass
 import argparse
-import getpass
 import json
 import logging
 import os
@@ -9,6 +9,7 @@ import pathlib
 import sys
 
 from downloader_creator import createDownloader
+
 
 def get_datadir() -> pathlib.Path:
     """
@@ -31,28 +32,29 @@ def get_datadir() -> pathlib.Path:
     else:
         raise NotImplementedError
 
+
 def main():
     local = os.path.join(get_datadir(), "unimi-dl")
 
     if not os.path.isdir(local):
-        os.mkdir(local)
+        os.makedirs(local)
 
     parser = argparse.ArgumentParser(description="UniMi's material downloader")
     parser.add_argument("url", metavar="URL", type=str,
-        help="URL of the video(s) to download")
+                        help="URL of the video(s) to download")
     parser.add_argument("-p", "--platform", metavar="platform",
-        type=str, default="ariel", choices=["ariel"], 
-        help="platform to download the video(s) from")
+                        type=str, default="ariel", choices=["ariel"],
+                        help="platform to download the video(s) from")
     parser.add_argument("-s", "--save", action="store_true",
-        help=f"Saves credentials in {local}")
+                        help=f"Saves credentials in {local}")
     parser.add_argument("-c", "--credentials", metavar="PATH",
-        type=str, default=os.path.join(local, "credentials.json"), 
-        help="credentials to be used for logging into the platform")
+                        type=str, default=os.path.join(
+                            local, "credentials.json"),
+                        help="credentials to be used for logging into the platform")
     parser.add_argument("-o", "--output", metavar="PATH",
-        type=str, default="./", help="path to download the video(s) into")
+                        type=str, default="./", help="path to download the video(s) into")
     parser.add_argument("-v", "--verbose", metavar="log level", type=str, nargs="?", default="WARNING", const="DEBUG",
-        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], help="verbosity level")
-
+                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], help="verbosity level")
 
     args = parser.parse_args()
 
@@ -65,7 +67,7 @@ def main():
         "NOTSET": 0
     }
 
-    #init
+    # init
     logging.basicConfig(level=log_level[args.verbose])
     logging.debug(f"local = {local}")
     cache = os.path.join(local, "downloaded.json")
@@ -77,7 +79,7 @@ def main():
             credentials = json.load(cred)  # to check
     except FileNotFoundError:
         credentials = {}
-        credentials[platform] = {"email" : None, "password" : None}
+        credentials[platform] = {"email": None, "password": None}
 
     try:
         email = credentials[platform]["email"]
@@ -86,14 +88,16 @@ def main():
         email = None
         password = None
 
-    #checking
+    # checking
     if email == None or password == None:
         logging.warning(f"Missing credentials for platform '{platform}'")
-        email    = input(f"Insert your username/email for '{platform}' platform\nusername/email=")
-        password = getpass.getpass(f"Insert your password for the user '{email}' and '{platform}' platform (Note that input won't be shown)\n")
+        email = input(
+            f"Insert your username/email for '{platform}' platform\nusername/email=")
+        password = getpass(
+            f"Insert your password for the user '{email}' and '{platform}' platform (input won't be shown)\n")
 
         if args.save:
-            credentials[platform] = {"email" : email, "password" : password}
+            credentials[platform] = {"email": email, "password": password}
             print(credentials)
             with open(args.credentials, "w") as new_credentials:
                 new_credentials.write(json.dumps(credentials))
@@ -105,10 +109,10 @@ def main():
     with open(cache, "w+") as downloaded_json:
         try:
             downloaded = json.load(downloaded_json)
-        except json.decoder.JSONDecodeError: #downloaded is empty
-            downloaded = { platform: []}
+        except json.decoder.JSONDecodeError:  # downloaded is empty
+            downloaded = {platform: []}
 
-        if platform not in downloaded.keys():
+        if platform not in downloaded:
             downloaded[platform] = []
 
         logging.info(videos_links)
@@ -122,6 +126,7 @@ def main():
             # maybe substitute with json.dump ?
 
     logging.info("downloaded")
+
 
 if __name__ == "__main__":
     main()
