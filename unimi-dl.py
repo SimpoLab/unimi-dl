@@ -3,6 +3,7 @@
 from getpass import getpass
 import argparse
 import json
+from json.decoder import JSONDecodeError
 import logging
 import os
 import pathlib
@@ -46,7 +47,9 @@ def main():
                         type=str, default="ariel", choices=["ariel"],
                         help="platform to download the video(s) from")
     parser.add_argument("-s", "--save", action="store_true",
-                        help=f"Saves credentials in {local}")
+                        help=f"saves credentials in {local}")
+    parser.add_argument("--ask", action="store_true",
+                        help=f"asks credentials even if stored")
     parser.add_argument("-c", "--credentials", metavar="PATH",
                         type=str, default=os.path.join(
                             local, "credentials.json"),
@@ -74,56 +77,52 @@ def main():
     videos_url = args.url
     platform = args.platform
 
-    try:
-        with open(args.credentials, "r") as cred:
-            credentials = json.load(cred)  # to check
-    except FileNotFoundError:
-        credentials = {}
-        credentials[platform] = {"email": None, "password": None}
-
-    try:
-        email = credentials[platform]["email"]
-        password = credentials[platform]["password"]
-    except KeyError:
-        email = None
-        password = None
-
-    # checking
-    if email == None or password == None:
-        logging.warning(f"Missing credentials for platform '{platform}'")
-        email = input(
-            f"Insert your username/email for '{platform}' platform\nusername/email=")
-        password = getpass(
-            f"Insert your password for the user '{email}' and '{platform}' platform (input won't be shown)\n")
-
+    email = None
+    password = None
+    creds = {}
+    if os.path.isfile(args.credentials):
+        with open(args.credentials, "r") as cred_json:
+            try:
+                creds = json.load(cred_json)
+            except JSONDecodeError:
+                pass
+            try:
+                email = creds[platform]["email"]
+                password = creds[platform]["password"]
+            except KeyError:
+                pass
+    if email == None or password == None or args.ask:
+        logging.info(f"Missing credentials for platform '{platform}'")
+        print("Credentials for '{platform}'")
+        email = input(f"username/email: ")
+        password = getpass(f"password (input won't be shown): ")
         if args.save:
-            credentials[platform] = {"email": email, "password": password}
-            print(credentials)
+            creds[platform] = {"email": email, "password": password}
             with open(args.credentials, "w") as new_credentials:
-                new_credentials.write(json.dumps(credentials))
-
+                new_credentials.write(json.dumps(creds))
             logging.info(f"Credentials saved succesfully in {local}")
 
     downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(videos_url)
-    with open(cache, "w+") as downloaded_json:
+    downloaded = {platform: []}
+    if not os.path.isfile(cache):
+        dl_json = open(cache, "w")
+    else:
+        dl_json = open(cache, "r+")
         try:
-            downloaded = json.load(downloaded_json)
-        except json.decoder.JSONDecodeError:  # downloaded is empty
-            downloaded = {platform: []}
+            downloaded = json.load(dl_json)
+        except json.decoder.JSONDecodeError:
+            pass
 
-        if platform not in downloaded:
-            downloaded[platform] = []
+    logging.info(videos_links)
+    for link in videos_links:
+        if link not in downloaded[platform]:
+            downloader.download(link, args.output)
+            downloaded[platform].append(link)
 
-        logging.info(videos_links)
-        for link in videos_links:
-            if link not in downloaded[platform]:
-                downloaded_json.seek(0)
-                downloader.download(link, args.output)
-                downloaded[platform].append(link)
-                downloaded_json.write(json.dumps(downloaded))
-                downloaded_json.truncate()
-            # maybe substitute with json.dump ?
+            dl_json.seek(0)
+            dl_json.write(json.dumps(downloaded))
+            dl_json.truncate()
 
     logging.info("downloaded")
 
