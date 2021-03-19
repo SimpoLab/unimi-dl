@@ -69,6 +69,10 @@ windows: C:/Users/<USER>/AppData/Roaming/unimi-dl/
 No, non è illegale.
 
 
+## Licenza
+[GPL v.3](https://www.gnu.org/licenses/gpl-3.0.en.html)
+
+
 ## Contributing
 Sul progetto [General TODO] si trovano i prossimi obiettivi stabiliti dai mantainer principali. Se hai intenzione di sviluppare una di tali feature, controlla prima che non sia negli "In progress" del progetto e nella discussion [Working on] per assicurarti che non ci stia già lavorando qualcuno. Sia se vuoi implementare uno dei sopracitati obiettivi (specialmente in questo caso), sia se vuoi sviluppare una personale idea, ti preghiamo di notificarlo nella suddetta discussion.
 
