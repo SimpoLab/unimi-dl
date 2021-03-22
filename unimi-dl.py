@@ -26,6 +26,7 @@ import logging
 import os
 import pathlib
 import sys
+import platform as pt
 
 from downloader_creator import createDownloader
 
@@ -67,8 +68,7 @@ def main():
     parser.add_argument("--ask", action="store_true",
                         help=f"asks credentials even if stored")
     parser.add_argument("-c", "--credentials", metavar="PATH",
-                        type=str, default=os.path.join(
-                            local, "credentials.json"),
+                        type=str, default=os.path.join(local, "credentials.json"),
                         help="credentials to be used for logging into the platform")
     parser.add_argument("-o", "--output", metavar="PATH",
                         type=str, default=os.getcwd(), help="path to download the video(s) into")
@@ -87,15 +87,24 @@ def main():
     }
 
     # init
-    logging.basicConfig(level=log_level[args.verbose])
-    logging.debug(f"local folder: {local}")
+    log        = os.path.join(local, "log.txt")
     cache      = os.path.join(local, "downloaded.json")
-    videos_url = args.url
+    url        = args.url
     platform   = args.platform
+
+    logging.basicConfig(filename=log, level=log_level[args.verbose])
+    logging.debug(f"Detected platform: {pt.platform()}")
+    logging.debug(f"Detected release: {pt.release()}")
+    logging.debug(f"Detected version: {pt.version()}")
+    logging.debug(f"Detected local folder: {local}")
+    logging.debug(f"Detected cache folder: {cache}")
+    logging.debug(f"Destination URL: {url}")
+    logging.debug(f"Downloading from: {platform}")
 
     email = None
     password = None
     creds = {}
+    logging.debug(f"Credentials path: {args.credentials}")
     if os.path.isfile(args.credentials):
         with open(args.credentials, "r") as cred_json:
             try:
@@ -124,7 +133,7 @@ def main():
                     logging.info(f"Credentials saved succesfully in {local}")
 
     downloader = createDownloader(email, password, platform)
-    videos_links = downloader.get_videos(videos_url)
+    videos_links = downloader.get_videos(url)
     downloaded = {platform: []}
     if not os.path.isfile(cache):
         dl_json = open(cache, "w")
@@ -150,7 +159,6 @@ def main():
                 dl_json.truncate()
 
         logging.info("downloaded")
-
 
 if __name__ == "__main__":
     main()
