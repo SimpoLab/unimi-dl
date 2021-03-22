@@ -29,7 +29,6 @@ import sys
 
 from downloader_creator import createDownloader
 
-
 def get_datadir() -> pathlib.Path:
     """
     Returns a parent directory path
@@ -50,7 +49,6 @@ def get_datadir() -> pathlib.Path:
         return home / "Library/Application Support"
     else:
         raise NotImplementedError
-
 
 def main():
     local = os.path.join(get_datadir(), "unimi-dl")
@@ -73,7 +71,7 @@ def main():
                             local, "credentials.json"),
                         help="credentials to be used for logging into the platform")
     parser.add_argument("-o", "--output", metavar="PATH",
-                        type=str, default="./", help="path to download the video(s) into")
+                        type=str, default=os.getcwd(), help="path to download the video(s) into")
     parser.add_argument("-v", "--verbose", metavar="log level", type=str, nargs="?", default="WARNING", const="DEBUG",
                         choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], help="verbosity level")
 
@@ -90,10 +88,10 @@ def main():
 
     # init
     logging.basicConfig(level=log_level[args.verbose])
-    logging.debug(f"local = {local}")
-    cache = os.path.join(local, "downloaded.json")
+    logging.debug(f"local folder: {local}")
+    cache      = os.path.join(local, "downloaded.json")
     videos_url = args.url
-    platform = args.platform
+    platform   = args.platform
 
     email = None
     password = None
@@ -109,7 +107,8 @@ def main():
                 password = creds[platform]["password"]
             except KeyError:
                 pass
-    if email == None or password == None or args.ask:
+
+    if email == None or password == None or args.ask: #sarebbe meglio dare un messaggio diverso se args.ask è settato
         logging.info(f"Missing credentials for platform '{platform}'")
         print(f"Credentials for '{platform}'")
         email = input(f"username/email: ")
