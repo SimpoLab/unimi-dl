@@ -111,14 +111,18 @@ def main():
                 pass
     if email == None or password == None or args.ask:
         logging.info(f"Missing credentials for platform '{platform}'")
-        print("Credentials for '{platform}'")
+        print(f"Credentials for '{platform}'")
         email = input(f"username/email: ")
         password = getpass(f"password (input won't be shown): ")
         if args.save:
             creds[platform] = {"email": email, "password": password}
-            with open(args.credentials, "w") as new_credentials:
-                new_credentials.write(json.dumps(creds))
-            logging.info(f"Credentials saved succesfully in {local}")
+            head, _ = os.path.split(args.credentials)
+            if not os.access(head, os.W_OK):
+                logging.warning(f"can't write to directory {head}")
+            else:
+                with open(args.credentials, "w") as new_credentials:
+                    new_credentials.write(json.dumps(creds))
+                    logging.info(f"Credentials saved succesfully in {local}")
 
     downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(videos_url)
@@ -133,16 +137,20 @@ def main():
             pass
 
     logging.info(videos_links)
-    for link in videos_links:
-        if link not in downloaded[platform]:
-            downloader.download(link, args.output)
-            downloaded[platform].append(link)
 
-            dl_json.seek(0)
-            dl_json.write(json.dumps(downloaded))
-            dl_json.truncate()
+    if not os.access(args.output, os.W_OK):
+        logging.warning(f"can't write to directory {args.output}")
+    else:
+        for link in videos_links:
+            if link not in downloaded[platform]:
+                downloader.download(link, args.output)
+                downloaded[platform].append(link)
 
-    logging.info("downloaded")
+                dl_json.seek(0)
+                dl_json.write(json.dumps(downloaded))
+                dl_json.truncate()
+
+        logging.info("downloaded")
 
 
 if __name__ == "__main__":
