@@ -45,7 +45,7 @@ class ArielDownloader(DownloaderInterface):
         manifest_regex = re.compile(r"https://.*/manifest\.m3u8")
         match = manifest_regex.findall(self.get_videos_page(url))
 
-        self.logger.debug(f"match: {match}")
+        self.logger.debug(f"get_videos() match: {match}")
         return match
 
     def download(self, url: str, dst: str) -> None:
@@ -54,22 +54,22 @@ class ArielDownloader(DownloaderInterface):
             Look at the code for more informations about the prefix and suffix removed."""
         filename = url.removeprefix("https://videolectures.unimi.it/vod/mp4:")
         filename = filename.removesuffix("/manifest.m3u8")
-        filename = filename.replace('%', '%%')  # escaping % for youtube-dl
+        filename = filename.replace("%", "%%")  # escaping % for youtube-dl
         filename = path.join(dst, filename)
-        self.logger.info(f'Downloading {url} as {filename}')
+        self.logger.info(f"Downloading {url} as {filename}")
 
         ydl_opts = {
-            'nocheckcertificate': 'true',
-            'restrictfilenames': 'true',
-            'outtmpl': filename,
-            'logger': self.CustomLogger()
+            "nocheckcertificate": "true",
+            "restrictfilenames": "true",
+            "outtmpl": filename,
+            "logger": self.CustomLogger()
         }
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
 
     class CustomLogger:
         def __init__(self) -> None:
-            self.logger = logging.getLogger('youtube-dl')
+            self.logger = logging.getLogger("youtube-dl")
 
         def debug(self, msg) -> None:
             self.logger.debug(msg)
