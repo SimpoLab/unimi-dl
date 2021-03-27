@@ -72,11 +72,13 @@ def main():
                         help="credentials to be used for logging into the platform")
     parser.add_argument("-o", "--output", metavar="PATH",
                         type=str, default=os.getcwd(), help="path to download the video(s) into")
-    parser.add_argument("-v", "--verbose", metavar="log level", type=str, nargs="?", default="WARNING", const="DEBUG",
-                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], help="verbosity level")
+#    parser.add_argument("-v", "--verbose", metavar="log level", type=str, nargs="?", default="WARNING", const="DEBUG",
+#                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], help="verbosity level")
+    parser.add_argument("-v", "--verbose", action="store_true")
 
     args = parser.parse_args()
 
+    #leaving for future (possible) use
     log_level = {
         "CRITICAL": 50,
         "ERROR": 40,
@@ -92,13 +94,17 @@ def main():
     url        = args.url
     platform   = args.platform
 
-    logging.basicConfig(filename=log, level=log_level[args.verbose])
+    logging.basicConfig(filename=log, level=log_level["DEBUG"])
     unimi_logger = logging.getLogger(__name__)
+
+    if args.verbose:
+        unimi_logger.addHandler(logging.StreamHandler(sys.stdout))
+
     unimi_logger.debug(f"Detected platform: {pt.platform()}")
     unimi_logger.debug(f"Detected release: {pt.release()}")
     unimi_logger.debug(f"Detected version: {pt.version()}")
     unimi_logger.debug(f"Detected local folder: {local}")
-    unimi_logger.debug(f"Detected cache folder: {cache}")
+    unimi_logger.debug(f"Detected cache: {cache}")
     unimi_logger.debug(f"Destination URL: {url}")
     unimi_logger.debug(f"Downloading from: {platform}")
 
@@ -145,7 +151,7 @@ def main():
         except json.decoder.JSONDecodeError:
             pass
 
-    unimi_logger.info(videos_links)
+    unimi_logger.debug(f"Links: {videos_links}")
 
     if not os.access(args.output, os.W_OK):
         unimi_logger.warning(f"can't write to directory {args.output}")
