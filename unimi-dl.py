@@ -30,6 +30,7 @@ import platform as pt
 
 from downloader_creator import createDownloader
 
+
 def get_datadir() -> pathlib.Path:
     """
     Returns a parent directory path
@@ -51,6 +52,7 @@ def get_datadir() -> pathlib.Path:
     else:
         raise NotImplementedError
 
+
 def main():
     local = os.path.join(get_datadir(), "unimi-dl")
 
@@ -68,7 +70,8 @@ def main():
     parser.add_argument("--ask", action="store_true",
                         help=f"asks credentials even if stored")
     parser.add_argument("-c", "--credentials", metavar="PATH",
-                        type=str, default=os.path.join(local, "credentials.json"),
+                        type=str, default=os.path.join(
+                            local, "credentials.json"),
                         help="credentials to be used for logging into the platform")
     parser.add_argument("-o", "--output", metavar="PATH",
                         type=str, default=os.getcwd(), help="path to download the video(s) into")
@@ -78,7 +81,7 @@ def main():
 
     args = parser.parse_args()
 
-    #leaving for future (possible) use
+    # leaving for future (possible) use
     log_level = {
         "CRITICAL": 50,
         "ERROR": 40,
@@ -89,10 +92,10 @@ def main():
     }
 
     # init
-    log        = os.path.join(local, "log.txt")
-    cache      = os.path.join(local, "downloaded.json")
-    url        = args.url
-    platform   = args.platform
+    log = os.path.join(local, "log.txt")
+    cache = os.path.join(local, "downloaded.json")
+    url = args.url
+    platform = args.platform
 
     logging.basicConfig(filename=log, level=log_level["DEBUG"])
     unimi_logger = logging.getLogger(__name__)
@@ -124,7 +127,8 @@ def main():
             except KeyError:
                 pass
 
-    if email == None or password == None or args.ask: #sarebbe meglio dare un messaggio diverso se args.ask è settato
+    # sarebbe meglio dare un messaggio diverso se args.ask è settato
+    if email == None or password == None or args.ask:
         unimi_logger.info(f"Missing credentials for platform '{platform}'")
         print(f"Credentials for '{platform}'")
         email = input(f"username/email: ")
@@ -137,7 +141,8 @@ def main():
             else:
                 with open(args.credentials, "w") as new_credentials:
                     new_credentials.write(json.dumps(creds))
-                    unimi_logger.info(f"Credentials saved succesfully in {local}")
+                    unimi_logger.info(
+                        f"Credentials saved succesfully in {local}")
 
     downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(url)
@@ -166,6 +171,7 @@ def main():
                 dl_json.truncate()
 
         unimi_logger.info("Downloaded completed")
+
 
 if __name__ == "__main__":
     main()
