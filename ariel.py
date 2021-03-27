@@ -59,23 +59,11 @@ class ArielDownloader(DownloaderInterface):
         self.logger.info(f"Downloading {url} as {filename}")
 
         ydl_opts = {
+            "v" : "true",
             "nocheckcertificate": "true",
             "restrictfilenames": "true",
             "outtmpl": filename,
-            "logger": self.CustomLogger()
+            "logger": logging.getLogger("youtube-dl")
         }
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
-
-    class CustomLogger:
-        def __init__(self) -> None:
-            self.logger = logging.getLogger("youtube-dl")
-
-        def debug(self, msg) -> None:
-            self.logger.debug(msg)
-
-        def warning(self, msg) -> None:
-            self.logger.warning(msg)
-
-        def error(self, msg) -> None:
-            self.logger.error(msg)
