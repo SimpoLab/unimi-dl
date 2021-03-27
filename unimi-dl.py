@@ -93,18 +93,19 @@ def main():
     platform   = args.platform
 
     logging.basicConfig(filename=log, level=log_level[args.verbose])
-    logging.debug(f"Detected platform: {pt.platform()}")
-    logging.debug(f"Detected release: {pt.release()}")
-    logging.debug(f"Detected version: {pt.version()}")
-    logging.debug(f"Detected local folder: {local}")
-    logging.debug(f"Detected cache folder: {cache}")
-    logging.debug(f"Destination URL: {url}")
-    logging.debug(f"Downloading from: {platform}")
+    unimi_logger = logging.getLogger(__name__)
+    unimi_logger.debug(f"Detected platform: {pt.platform()}")
+    unimi_logger.debug(f"Detected release: {pt.release()}")
+    unimi_logger.debug(f"Detected version: {pt.version()}")
+    unimi_logger.debug(f"Detected local folder: {local}")
+    unimi_logger.debug(f"Detected cache folder: {cache}")
+    unimi_logger.debug(f"Destination URL: {url}")
+    unimi_logger.debug(f"Downloading from: {platform}")
 
     email = None
     password = None
     creds = {}
-    logging.debug(f"Credentials path: {args.credentials}")
+    unimi_logger.debug(f"Credentials path: {args.credentials}")
     if os.path.isfile(args.credentials):
         with open(args.credentials, "r") as cred_json:
             try:
@@ -118,7 +119,7 @@ def main():
                 pass
 
     if email == None or password == None or args.ask: #sarebbe meglio dare un messaggio diverso se args.ask è settato
-        logging.info(f"Missing credentials for platform '{platform}'")
+        unimi_logger.info(f"Missing credentials for platform '{platform}'")
         print(f"Credentials for '{platform}'")
         email = input(f"username/email: ")
         password = getpass(f"password (input won't be shown): ")
@@ -126,11 +127,11 @@ def main():
             creds[platform] = {"email": email, "password": password}
             head, _ = os.path.split(args.credentials)
             if not os.access(head, os.W_OK):
-                logging.warning(f"can't write to directory {head}")
+                unimi_logger.warning(f"can't write to directory {head}")
             else:
                 with open(args.credentials, "w") as new_credentials:
                     new_credentials.write(json.dumps(creds))
-                    logging.info(f"Credentials saved succesfully in {local}")
+                    unimi_logger.info(f"Credentials saved succesfully in {local}")
 
     downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(url)
@@ -144,10 +145,10 @@ def main():
         except json.decoder.JSONDecodeError:
             pass
 
-    logging.info(videos_links)
+    unimi_logger.info(videos_links)
 
     if not os.access(args.output, os.W_OK):
-        logging.warning(f"can't write to directory {args.output}")
+        unimi_logger.warning(f"can't write to directory {args.output}")
     else:
         for link in videos_links:
             if link not in downloaded[platform]:
@@ -158,7 +159,7 @@ def main():
                 dl_json.write(json.dumps(downloaded))
                 dl_json.truncate()
 
-        logging.info("downloaded")
+        unimi_logger.info("Downloaded completed")
 
 if __name__ == "__main__":
     main()

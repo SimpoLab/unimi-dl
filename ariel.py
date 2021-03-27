@@ -27,6 +27,7 @@ import youtube_dl
 
 class ArielDownloader(DownloaderInterface):
     def __init__(self, email: str, password: str) -> None:
+        self.logger   = logging.getLogger(__name__)
         super().__init__(email, password)
 
     def get_videos_page(self, url: str) -> str:
@@ -44,7 +45,7 @@ class ArielDownloader(DownloaderInterface):
         manifest_regex = re.compile(r"https://.*/manifest\.m3u8")
         match = manifest_regex.findall(self.get_videos_page(url))
 
-        logging.debug(f"match: {match}")
+        self.logger.debug(f"match: {match}")
         return match
 
     def download(self, url: str, dst: str) -> None:
@@ -55,7 +56,7 @@ class ArielDownloader(DownloaderInterface):
         filename = filename.removesuffix("/manifest.m3u8")
         filename = filename.replace('%', '%%')  # escaping % for youtube-dl
         filename = path.join(dst, filename)
-        logging.info(f'Downloading {url} as {filename}')
+        self.logger.info(f'Downloading {url} as {filename}')
 
         ydl_opts = {
             'nocheckcertificate': 'true',
@@ -68,13 +69,13 @@ class ArielDownloader(DownloaderInterface):
 
     class CustomLogger:
         def __init__(self) -> None:
-            self.logger = logging
+            self.logger = logging.getLogger('youtube-dl')
 
         def debug(self, msg) -> None:
-            logging.debug(msg)
+            self.logger.debug(msg)
 
         def warning(self, msg) -> None:
-            logging.warning(msg)
+            self.logger.warning(msg)
 
         def error(self, msg) -> None:
-            logging.error(msg)
+            self.logger.error(msg)
