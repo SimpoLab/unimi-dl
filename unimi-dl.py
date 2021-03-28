@@ -19,14 +19,16 @@
 
 
 from getpass import getpass
+from json.decoder import JSONDecodeError
+from requests import __version__ as reqv
+from youtube_dl.version import __version__ as ytdv
 import argparse
 import json
-from json.decoder import JSONDecodeError
 import logging
 import os
 import pathlib
-import sys
 import platform as pt
+import sys
 
 from downloader_creator import createDownloader
 
@@ -66,7 +68,7 @@ def main():
                         type=str, default="ariel", choices=["ariel"],
                         help="platform to download the video(s) from")
     parser.add_argument("-s", "--save", action="store_true",
-                        help=f"saves credentials in {local}")
+                        help=f"saves credentials (unencrypted) in {local}")
     parser.add_argument("--ask", action="store_true",
                         help=f"asks credentials even if stored")
     parser.add_argument("-c", "--credentials", metavar="PATH",
@@ -98,38 +100,50 @@ def main():
     platform = args.platform
 
     logging.basicConfig(filename=log, level=log_level["DEBUG"])
-    unimi_logger = logging.getLogger(__name__)
+    main_logger = logging.getLogger("main")
 
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_loglevel = logging.WARNING
     if args.verbose:
-        unimi_logger.addHandler(logging.StreamHandler(sys.stdout))
+        stdout_loglevel=logging.INFO
+    stdout_handler.setLevel(stdout_loglevel)
+    main_logger.addHandler(stdout_handler)
 
-    unimi_logger.debug(f"Detected platform: {pt.platform()}")
-    unimi_logger.debug(f"Detected release: {pt.release()}")
-    unimi_logger.debug(f"Detected version: {pt.version()}")
-    unimi_logger.debug(f"Detected local folder: {local}")
-    unimi_logger.debug(f"Detected cache: {cache}")
-    unimi_logger.debug(f"Destination URL: {url}")
-    unimi_logger.debug(f"Downloading from: {platform}")
+    main_logger.debug(f"""Detected system info:
+    OS: {pt.platform()}
+    Release: {pt.release()}
+    Version: {pt.version()}
+    Local: {local}
+    Python: {sys.version}
+    Requests: {reqv}
+    YoutubeDL: {ytdv}
+    Cache: {cache}""")
+
+    main_logger.debug(f"""Request info:
+    URL: {url}
+    Platform: {platform}
+    Save: {args.save}
+    Ask: {args.ask}
+    Credentials: {args.credentials}
+    Output: {args.output}""")
 
     email = None
     password = None
     creds = {}
-    unimi_logger.debug(f"Credentials path: {args.credentials}")
     if os.path.isfile(args.credentials):
         with open(args.credentials, "r") as cred_json:
             try:
                 creds = json.load(cred_json)
             except JSONDecodeError:
-                pass
+                main_logger.warning("Error parsing credentials json")
             try:
                 email = creds[platform]["email"]
                 password = creds[platform]["password"]
             except KeyError:
                 pass
 
-    # sarebbe meglio dare un messaggio diverso se args.ask è settato
     if email == None or password == None or args.ask:
-        unimi_logger.info(f"Missing credentials for platform '{platform}'")
+        main_logger.info(f"Asking credentials for platform '{platform}'")
         print(f"Credentials for '{platform}'")
         email = input(f"username/email: ")
         password = getpass(f"password (input won't be shown): ")
@@ -137,15 +151,20 @@ def main():
             creds[platform] = {"email": email, "password": password}
             head, _ = os.path.split(args.credentials)
             if not os.access(head, os.W_OK):
-                unimi_logger.warning(f"can't write to directory {head}")
+                main_logger.warning(f"Can't write to directory {head}")
             else:
                 with open(args.credentials, "w") as new_credentials:
                     new_credentials.write(json.dumps(creds))
-                    unimi_logger.info(
+                    main_logger.info(
                         f"Credentials saved succesfully in {local}")
 
-    downloader = createDownloader(email, password, platform)
+    downloader = createDownloader(email, password, platform, stdout_loglevel)
     videos_links = downloader.get_videos(url)
+    link_list = ""
+    for link in videos_links:
+        link_list += f"\t{url}\n"
+    main_logger.info("Links:\n{}".format(link_list.removesuffix("\n")))
+
     downloaded = {platform: []}
     if not os.path.isfile(cache):
         dl_json = open(cache, "w")
@@ -154,14 +173,14 @@ def main():
         try:
             downloaded = json.load(dl_json)
         except json.decoder.JSONDecodeError:
-            pass
-
-    unimi_logger.debug(f"Links: {videos_links}")
+            main_logger.warning("Error parsing cache json")
 
     if not os.access(args.output, os.W_OK):
-        unimi_logger.warning(f"can't write to directory {args.output}")
+        main_logger.warning(f"can't write to directory {args.output}")
     else:
         for link in videos_links:
+            main_logger.info(
+                f"Not downloading {link} since it'd already been downloaded")
             if link not in downloaded[platform]:
                 downloader.download(link, args.output)
                 downloaded[platform].append(link)
@@ -170,7 +189,7 @@ def main():
                 dl_json.write(json.dumps(downloaded))
                 dl_json.truncate()
 
-        unimi_logger.info("Downloaded completed")
+        main_logger.info("Downloaded completed")
 
 
 if __name__ == "__main__":

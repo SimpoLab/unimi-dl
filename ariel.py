@@ -19,6 +19,7 @@
 from __future__ import annotations
 from interface_downloader import Downloader as DownloaderInterface
 from os import path
+from sys import stdout
 import logging
 import re
 import requests
@@ -26,8 +27,11 @@ import youtube_dl
 
 
 class ArielDownloader(DownloaderInterface):
-    def __init__(self, email: str, password: str) -> None:
-        self.logger = logging.getLogger(__name__)
+    def __init__(self, email: str, password: str, stdout_loglevel: int) -> None:
+        self.logger = logging.getLogger("ariel")
+        stdout_handler = logging.StreamHandler(stdout)
+        stdout_handler.setLevel(stdout_loglevel)
+        self.logger.addHandler(stdout_handler)
         super().__init__(email, password)
 
     def get_videos_page(self, url: str) -> str:
@@ -38,14 +42,15 @@ class ArielDownloader(DownloaderInterface):
             payload = {'hdnSilent': 'true'}
             payload['tbLogin'] = self.email
             payload['tbPassword'] = self.password
+
+            self.logger.info("Logging in")
             s.post(login_url, data=payload)
             return s.get(url).text
 
     def get_videos(self, url: str) -> list[str]:
+        self.logger.info("Looking for manifests")
         manifest_regex = re.compile(r"https://.*/manifest\.m3u8")
         match = manifest_regex.findall(self.get_videos_page(url))
-
-        self.logger.debug(f"get_videos() match: {match}")
         return match
 
     def download(self, url: str, dst: str) -> None:
