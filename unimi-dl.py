@@ -77,21 +77,9 @@ def main():
                         help="credentials to be used for logging into the platform")
     parser.add_argument("-o", "--output", metavar="PATH",
                         type=str, default=os.getcwd(), help="path to download the video(s) into")
-#    parser.add_argument("-v", "--verbose", metavar="log level", type=str, nargs="?", default="WARNING", const="DEBUG",
-#                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], help="verbosity level")
     parser.add_argument("-v", "--verbose", action="store_true")
 
     args = parser.parse_args()
-
-    # leaving for future (possible) use
-    log_level = {
-        "CRITICAL": 50,
-        "ERROR": 40,
-        "WARNING": 30,
-        "INFO": 20,
-        "DEBUG": 10,
-        "NOTSET": 0
-    }
 
     # init
     log = os.path.join(local, "log.txt")
@@ -99,7 +87,7 @@ def main():
     url = args.url
     platform = args.platform
 
-    logging.basicConfig(filename=log, level=log_level["DEBUG"])
+    logging.basicConfig(filename=log, level=logging.DEBUG)
     main_logger = logging.getLogger("main")
 
     stdout_handler = logging.StreamHandler(sys.stdout)
