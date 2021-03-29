@@ -19,9 +19,10 @@ Script in Python 3 per scaricare videolezioni dai portali usati da Unimi.
 Al momento l'unico portale supportato è Ariel.
 
 ```
-unimi-dl.py [-h] [-p platform] [-s] [-c PATH] [-o PATH] [-v [log level]] URL
+usage: unimi-dl.py [-h] [-p platform] [-s] [--ask] [-c PATH] [-o PATH] [-v]
+                   URL
 
-UniMi's material downloader
+UniMi material downloader
 
 positional arguments:
   URL                   URL of the video(s) to download
@@ -30,13 +31,14 @@ optional arguments:
   -h, --help            show this help message and exit
   -p platform, --platform platform
                         platform to download the video(s) from
-  -s, --save            Saves credentials in /home/<user>/.local/share/unimi-dl
+  -s, --save            saves credentials (unencrypted) in
+                        /home/sgorblex/.local/share/unimi-dl
+  --ask                 asks credentials even if stored
   -c PATH, --credentials PATH
                         credentials to be used for logging into the platform
   -o PATH, --output PATH
                         path to download the video(s) into
-  -v [log level], --verbose [log level]
-                        verbosity level
+  -v, --verbose		verbose output
 ```
 
 Ad esempio:
@@ -45,28 +47,12 @@ python unimi-dl.py "https://unsito.ariel.ctu.unimi.it/paginadelleregistrazioni"
 ```
 
 
-## Configurazione
-File di cache, log e di configurazione `credentials.json` (opzionale ai fini del funzionamento che serve per memorizzare le credenziali per ogni piattaforma) si trovano in
-
-linux: ~/.local/share/unimi-dl/
-macOS: ~/Library/Application Support/unimi-dl/
-windows: C:/Users/<USER>/AppData/Roaming/unimi-dl/
-
-```json
-{
-    "{piattaforma1}": {
-        "email": "tua email",
-        "password": "tua password"
-    },
-    ...
-}
-```
-
-
 ## Disclaimer
-[WIP]
+No, non è illegale. Non stiamo facendo ridistribuzione non autorizzata. Chi ha accesso ai web player può scaricare i video. Crediamo che poter scaricare i video renda molto più semplice fruirne, potendo sfruttare, ad esempio, i vantaggi dei player e evitarci il fastidio di una cattiva connessione.
 
-No, non è illegale.
+
+## Issue guideline
+Se vuoi segnalarci un bug, o suggerire un miglioramento, il modo migliore per farlo è tramite una [issue](https://github.com/aclerici-unimi/unimi-dl/issues/new/choose). Ricordati di scegliere il giusto tag e, se si tratta di un bug (un malfunzionamento) includi un log. Il log è un file generato da unimi-dl che contiene informazioni utili a risolvere il bug. Puoi trovarlo in `$HOME/.local/share/unimi-dl/log.txt` su Linux, `Users\[proprio utente]\AppData\Roaming\unimi-dl\log.txt` su Windows, e `$HOME/Library/'Application Support'/unimi-dl/log.txt` su MacOS.
 
 
 ## Licenza
