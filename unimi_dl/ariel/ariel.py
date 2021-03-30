@@ -17,7 +17,7 @@
 
 
 from __future__ import annotations
-from interface_downloader import Downloader as DownloaderInterface
+from unimi_dl.downloader.interface_downloader import Downloader as DownloaderInterface
 from os import path
 from sys import stdout
 import logging

@@ -30,7 +30,7 @@ import pathlib
 import platform as pt
 import sys
 
-from downloader_creator import createDownloader
+from .downloader.downloader_creator import createDownloader
 
 
 def get_datadir() -> pathlib.Path:
@@ -93,7 +93,7 @@ def main():
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_loglevel = logging.WARNING
     if args.verbose:
-        stdout_loglevel=logging.INFO
+        stdout_loglevel = logging.INFO
     stdout_handler.setLevel(stdout_loglevel)
     main_logger.addHandler(stdout_handler)
 
@@ -178,7 +178,3 @@ def main():
                 dl_json.truncate()
 
         main_logger.info("Downloaded completed")
-
-
-if __name__ == "__main__":
-    main()
