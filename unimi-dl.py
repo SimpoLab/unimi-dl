@@ -84,7 +84,7 @@ def main():
     # init
     log = os.path.join(local, "log.txt")
     cache = os.path.join(local, "downloaded.json")
-    url = args.url
+    url = args.url.replace("\\", "")
     platform = args.platform
 
     logging.basicConfig(filename=log, level=logging.DEBUG)
@@ -93,7 +93,7 @@ def main():
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_loglevel = logging.WARNING
     if args.verbose:
-        stdout_loglevel=logging.INFO
+        stdout_loglevel = logging.INFO
     stdout_handler.setLevel(stdout_loglevel)
     main_logger.addHandler(stdout_handler)
 
@@ -158,10 +158,11 @@ def main():
         dl_json = open(cache, "w")
     else:
         dl_json = open(cache, "r+")
-        try:
-            downloaded = json.load(dl_json)
-        except json.decoder.JSONDecodeError:
-            main_logger.warning("Error parsing cache json")
+        if os.stat(cache).st_size:
+            try:
+                downloaded = json.load(dl_json)
+            except json.decoder.JSONDecodeError:
+                main_logger.warning("Error parsing cache json")
 
     if not os.access(args.output, os.W_OK):
         main_logger.warning(f"can't write to directory {args.output}")
@@ -176,6 +177,7 @@ def main():
                 dl_json.seek(0)
                 dl_json.write(json.dumps(downloaded))
                 dl_json.truncate()
+        dl_json.close()
 
         main_logger.info("Downloaded completed")
 
