@@ -38,14 +38,18 @@ setup(
     author="Alessandro Clerici and Zhifan Chen",
     license=udll,
     classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: MacOS",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX :: Linux",
-        "Programming Language :: Python :: 3"
-    ],                                                                          # to be completed
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python",
+        "Topic :: Education",
+        "Topic :: Multimedia"
+    ],
     packages=["unimi_dl", "unimi_dl.downloader", "unimi_dl.ariel"],
-    include_package_data=True,                                                  # ?
     python_requires=">=3",
     install_requires=["requests", "youtube-dl"],
     entry_points={
