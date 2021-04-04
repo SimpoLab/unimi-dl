@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Copyright (C) 2021 Alessandro Clerici Lorenzini and Zhifan Chen.
 #
 # This file is part of unimi-dl.
@@ -16,15 +18,7 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from ariel import ArielDownloader
-from interface_downloader import Downloader
+from unimi_dl.unimiDL import main
 
-
-def createDownloader(email: str, password: str, platform: str, stdout_loglevel: int) -> Downloader:
-    """ Factory method to create the appropriate downloader for the request platform
-    Should always call this method and never the constructor"""
-    if platform == 'ariel':
-        downloader = ArielDownloader(email, password, stdout_loglevel)
-        return downloader
-
-    raise NotImplementedError
+if __name__ == '__main__':
+    main()

@@ -30,7 +30,7 @@ import pathlib
 import platform as pt
 import sys
 
-from downloader_creator import createDownloader
+from .downloader.downloader_creator import createDownloader
 
 
 def get_datadir() -> pathlib.Path:
@@ -180,7 +180,3 @@ def main():
         dl_json.close()
 
         main_logger.info("Downloaded completed")
-
-
-if __name__ == "__main__":
-    main()
