@@ -22,6 +22,7 @@ from getpass import getpass
 from json.decoder import JSONDecodeError
 from requests import __version__ as reqv
 from youtube_dl.version import __version__ as ytdv
+from unimi_dl.__init__ import __version__ as version
 import argparse
 import json
 import logging
@@ -61,7 +62,8 @@ def main():
     if not os.path.isdir(local):
         os.makedirs(local)
 
-    parser = argparse.ArgumentParser(description="UniMi's material downloader")
+    parser = argparse.ArgumentParser(
+        description=f"Unimi material downloader v. {version}")
     parser.add_argument("url", metavar="URL", type=str,
                         help="URL of the video(s) to download")
     parser.add_argument("-p", "--platform", metavar="platform",
@@ -97,7 +99,9 @@ def main():
     stdout_handler.setLevel(stdout_loglevel)
     main_logger.addHandler(stdout_handler)
 
+    main_logger.debug("=============job-start=============")
     main_logger.debug(f"""Detected system info:
+    unimi-dl: {version}
     OS: {pt.platform()}
     Release: {pt.release()}
     Version: {pt.version()}
