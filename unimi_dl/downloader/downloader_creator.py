@@ -16,6 +16,8 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
+from unimi_dl.panopto.panopto import PanoptoDownloader
+
 from unimi_dl.ariel.ariel import ArielDownloader
 from unimi_dl.downloader.interface_downloader import Downloader
 
@@ -25,6 +27,8 @@ def createDownloader(email: str, password: str, platform: str, stdout_loglevel: 
     Should always call this method and never the constructor"""
     if platform == 'ariel':
         downloader = ArielDownloader(email, password, stdout_loglevel)
+    elif platform == 'panopto':
+        downloader = PanoptoDownloader(email, password, stdout_loglevel)
         return downloader
 
     raise NotImplementedError
