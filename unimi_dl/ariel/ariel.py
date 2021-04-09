@@ -19,7 +19,6 @@
 from __future__ import annotations
 from unimi_dl.downloader.interface_downloader import Downloader as DownloaderInterface
 from os import path
-from sys import stdout
 import logging
 import re
 import requests
@@ -40,12 +39,12 @@ class ArielDownloader(DownloaderInterface):
             payload['tbLogin'] = self.email
             payload['tbPassword'] = self.password
 
-            self.logger.info("Logging in")
+            self.logger.info("Logging in ...")
             s.post(login_url, data=payload)
             return s.get(url).text
 
     def get_videos(self, url: str) -> list[str]:
-        self.logger.info("Looking for manifests")
+        self.logger.info("Looking for manifests ...")
         manifest_regex = re.compile(r"https://.*/manifest\.m3u8")
         match = manifest_regex.findall(self.get_videos_page(url))
         return match
