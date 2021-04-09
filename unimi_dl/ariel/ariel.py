@@ -27,7 +27,7 @@ import youtube_dl
 
 class ArielDownloader(DownloaderInterface):
     def __init__(self, email: str, password: str) -> None:
-        self.logger = logging.getLogger("ariel")
+        self.logger = logging.getLogger(__name__)
         super().__init__(email, password)
 
     def get_videos_page(self, url: str) -> str:
