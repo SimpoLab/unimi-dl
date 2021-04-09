@@ -68,17 +68,17 @@ def main():
                         help="URL of the video(s) to download")
     parser.add_argument("-p", "--platform", metavar="platform",
                         type=str, default="ariel", choices=["ariel"],
-                        help="platform to download the video(s) from")
+                        help="platform to download the video(s) from (default: ariel)")
     parser.add_argument("-s", "--save", action="store_true",
-                        help=f"saves credentials (unencrypted) in {local}")
+                        help=f"saves credentials (unencrypted) in {local}/credentials.json")
     parser.add_argument("--ask", action="store_true",
                         help=f"asks credentials even if stored")
     parser.add_argument("-c", "--credentials", metavar="PATH",
                         type=str, default=os.path.join(
                             local, "credentials.json"),
-                        help="credentials to be used for logging into the platform")
+                        help="path of the credentials json to be used for logging into the platform")
     parser.add_argument("-o", "--output", metavar="PATH",
-                        type=str, default=os.getcwd(), help="path to download the video(s) into")
+                        type=str, default=os.getcwd(), help="directory to download the video(s) into")
     parser.add_argument("-v", "--verbose", action="store_true")
 
     args = parser.parse_args()
