@@ -84,20 +84,31 @@ def main():
     args = parser.parse_args()
 
     # init
-    log = os.path.join(local, "log.txt")
+    log_path = os.path.join(local, "log.txt")
+    handlers = [logging.FileHandler(log_path)]
+    if args.verbose:
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stderr_handler = logging.StreamHandler(sys.stderr)
+
+        stdout_handler.setLevel(logging.INFO)
+        stderr_handler.setLevel(logging.INFO)
+
+        handlers.append(stdout_handler)
+        handlers.append(stderr_handler)
+
     cache = os.path.join(local, "downloaded.json")
     url = args.url.replace("\\", "")
     platform = args.platform
 
-    logging.basicConfig(filename=log, level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, handlers=handlers)
     main_logger = logging.getLogger("main")
 
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_loglevel = logging.WARNING
-    if args.verbose:
-        stdout_loglevel = logging.INFO
-    stdout_handler.setLevel(stdout_loglevel)
-    main_logger.addHandler(stdout_handler)
+#    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_loglevel = logging.INFO
+#    if args.verbose:
+#        stdout_loglevel = logging.INFO
+#    stdout_handler.setLevel(stdout_loglevel)
+#    main_logger.addHandler(stdout_handler)
 
     main_logger.debug("=============job-start=============")
     main_logger.debug(f"""Detected system info:
