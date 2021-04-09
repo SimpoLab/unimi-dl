@@ -84,20 +84,20 @@ def main():
     args = parser.parse_args()
 
     # init
-    log = os.path.join(local, "log.txt")
+    log_path = os.path.join(local, "log.txt")
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.WARNING)
+    handlers = [logging.FileHandler(log_path), stdout_handler]
+
+    if args.verbose:
+        stdout_handler.setLevel(logging.INFO)
+
     cache = os.path.join(local, "downloaded.json")
     url = args.url.replace("\\", "")
     platform = args.platform
 
-    logging.basicConfig(filename=log, level=logging.DEBUG)
-    main_logger = logging.getLogger("main")
-
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_loglevel = logging.WARNING
-    if args.verbose:
-        stdout_loglevel = logging.INFO
-    stdout_handler.setLevel(stdout_loglevel)
-    main_logger.addHandler(stdout_handler)
+    logging.basicConfig(level=logging.DEBUG, handlers=handlers)
+    main_logger = logging.getLogger(__name__)
 
     main_logger.debug("=============job-start=============")
     main_logger.debug(f"""Detected system info:
@@ -150,7 +150,7 @@ def main():
                     main_logger.info(
                         f"Credentials saved succesfully in {local}")
 
-    downloader = createDownloader(email, password, platform, stdout_loglevel)
+    downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(url)
     link_list = ""
     for link in videos_links:
@@ -172,8 +172,7 @@ def main():
         main_logger.warning(f"can't write to directory {args.output}")
     else:
         for link in videos_links:
-            main_logger.info(
-                f"Not downloading {link} since it'd already been downloaded")
+            main_logger.info(f"Not downloading {link} since it'd already been downloaded")
             if link not in downloaded[platform]:
                 downloader.download(link, args.output)
                 downloaded[platform].append(link)
