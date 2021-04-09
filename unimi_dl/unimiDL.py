@@ -85,7 +85,8 @@ def main():
 
     # init
     log_path = os.path.join(local, "log.txt")
-    stdout_handler = logging.StreamHandler(sys.stdout).setLevel(logging.WARNING)
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.WARNING)
     handlers = [logging.FileHandler(log_path), stdout_handler]
 
     if args.verbose:
