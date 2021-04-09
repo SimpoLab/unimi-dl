@@ -88,13 +88,10 @@ def main():
     handlers = [logging.FileHandler(log_path)]
     if args.verbose:
         stdout_handler = logging.StreamHandler(sys.stdout)
-        stderr_handler = logging.StreamHandler(sys.stderr)
 
         stdout_handler.setLevel(logging.INFO)
-        stderr_handler.setLevel(logging.INFO)
 
         handlers.append(stdout_handler)
-        handlers.append(stderr_handler)
 
     cache = os.path.join(local, "downloaded.json")
     url = args.url.replace("\\", "")
@@ -102,13 +99,6 @@ def main():
 
     logging.basicConfig(level=logging.DEBUG, handlers=handlers)
     main_logger = logging.getLogger("main")
-
-#    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_loglevel = logging.INFO
-#    if args.verbose:
-#        stdout_loglevel = logging.INFO
-#    stdout_handler.setLevel(stdout_loglevel)
-#    main_logger.addHandler(stdout_handler)
 
     main_logger.debug("=============job-start=============")
     main_logger.debug(f"""Detected system info:
@@ -161,7 +151,7 @@ def main():
                     main_logger.info(
                         f"Credentials saved succesfully in {local}")
 
-    downloader = createDownloader(email, password, platform, stdout_loglevel)
+    downloader = createDownloader(email, password, platform)
     videos_links = downloader.get_videos(url)
     link_list = ""
     for link in videos_links:
