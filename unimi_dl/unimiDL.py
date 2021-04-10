@@ -67,7 +67,7 @@ def main():
     parser.add_argument("url", metavar="URL", type=str,
                         help="URL of the video(s) to download")
     parser.add_argument("-p", "--platform", metavar="platform",
-                        type=str, default="ariel", choices=["ariel"],
+                        type=str, default="ariel", choices=["ariel", "panopto"],
                         help="platform to download the video(s) from (default: ariel)")
     parser.add_argument("-s", "--save", action="store_true",
                         help=f"saves credentials (unencrypted) in {local}/credentials.json")
@@ -86,12 +86,11 @@ def main():
     # init
     log_path = os.path.join(local, "log.txt")
     stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.WARNING)
-    handlers = [logging.FileHandler(log_path), stdout_handler]
-
     if args.verbose:
         stdout_handler.setLevel(logging.INFO)
-
+    else:
+        stdout_handler.setLevel(logging.WARNING)
+    handlers = [logging.FileHandler(log_path), stdout_handler]
     cache = os.path.join(local, "downloaded.json")
     url = args.url.replace("\\", "")
     platform = args.platform
@@ -129,18 +128,18 @@ def main():
             except JSONDecodeError:
                 main_logger.warning("Error parsing credentials json")
             try:
-                email = creds[platform]["email"]
-                password = creds[platform]["password"]
+                email = creds["email"]
+                password = creds["password"]
             except KeyError:
                 pass
 
     if email == None or password == None or args.ask:
-        main_logger.info(f"Asking credentials for platform '{platform}'")
-        print(f"Credentials for '{platform}'")
+        main_logger.info(f"Asking credentials")
+        print(f"Insert credentials")
         email = input(f"username/email: ")
         password = getpass(f"password (input won't be shown): ")
         if args.save:
-            creds[platform] = {"email": email, "password": password}
+            creds = {"email": email, "password": password}
             head, _ = os.path.split(args.credentials)
             if not os.access(head, os.W_OK):
                 main_logger.warning(f"Can't write to directory {head}")
@@ -165,6 +164,8 @@ def main():
         if os.stat(cache).st_size:
             try:
                 downloaded = json.load(dl_json)
+                if platform not in downloaded:
+                    downloaded[platform] = []
             except json.decoder.JSONDecodeError:
                 main_logger.warning("Error parsing cache json")
 
