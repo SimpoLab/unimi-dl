@@ -16,18 +16,16 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from unimi_dl.panopto.panopto import PanoptoDownloader
-
-from unimi_dl.ariel.ariel import ArielDownloader
-from unimi_dl.downloader.interface_downloader import Downloader
+from __future__ import annotations
 
 
-def createDownloader(email: str, password: str, platform: str) -> Downloader:
-    """ Factory method to create the appropriate downloader for the request platform
-    Should always call this method and never the constructor"""
-    if platform == 'ariel':
-        return ArielDownloader(email, password)
-    if platform == 'panopto':
-        return PanoptoDownloader(email, password)
+class Platform:
+    def __init__(self, email: str, password: str) -> None:
+        self.email = email
+        self.password = password
 
-    raise NotImplementedError
+    def get_manifests(self, url: str) -> list[tuple[str, str]]:
+        """ Returns a list of couples, each one containing a filename and relative
+        manifest, fetched from {url} """
+
+        raise NotImplementedError

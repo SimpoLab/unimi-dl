@@ -18,20 +18,24 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from getpass import getpass
-from json.decoder import JSONDecodeError
-from requests import __version__ as reqv
-from youtube_dl.version import __version__ as ytdv
-from unimi_dl.__init__ import __version__ as version
 import argparse
+from getpass import getpass
 import json
+from json.decoder import JSONDecodeError
 import logging
+from os import path
 import os
 import pathlib
 import platform as pt
 import sys
 
-from .downloader.downloader_creator import createDownloader
+from requests import __version__ as reqv
+import youtube_dl
+from youtube_dl.version import __version__ as ytdv
+
+from unimi_dl.__init__ import __version__ as version
+
+from .platform.getPlatform import getPlatform
 
 
 def get_datadir() -> pathlib.Path:
@@ -57,6 +61,7 @@ def get_datadir() -> pathlib.Path:
 
 
 def main():
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
     local = os.path.join(get_datadir(), "unimi-dl")
 
     if not os.path.isdir(local):
@@ -88,9 +93,16 @@ def main():
     stdout_handler = logging.StreamHandler(sys.stdout)
     if args.verbose:
         stdout_handler.setLevel(logging.INFO)
+        stdout_handler.setFormatter(
+            logging.Formatter("%(message)s"))
     else:
         stdout_handler.setLevel(logging.WARNING)
-    handlers = [logging.FileHandler(log_path), stdout_handler]
+        stdout_handler.setFormatter(
+            logging.Formatter("%(levelname)s: %(message)s"))
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setFormatter(logging.Formatter(
+        "%(levelname)s[%(name)s]: %(message)s"))
+    handlers = [file_handler, stdout_handler]
     cache = os.path.join(local, "downloaded.json")
     url = args.url.replace("\\", "")
     platform = args.platform
@@ -149,12 +161,10 @@ def main():
                     main_logger.info(
                         f"Credentials saved succesfully in {local}")
 
-    downloader = createDownloader(email, password, platform)
-    videos_links = downloader.get_videos(url)
-    link_list = ""
-    for link in videos_links:
-        link_list += f"\t{url}\n"
-    main_logger.info("Links:\n{}".format(link_list.removesuffix("\n")))
+    platform_instance = getPlatform(email, password, platform)
+    videos = platform_instance.get_manifests(url)
+    video_list = [video for video, _ in videos]
+    main_logger.info(f"Videos: {video_list}")
 
     downloaded = {platform: []}
     if not os.path.isfile(cache):
@@ -172,15 +182,27 @@ def main():
     if not os.access(args.output, os.W_OK):
         main_logger.warning(f"can't write to directory {args.output}")
     else:
-        for link in videos_links:
-            main_logger.info(f"Not downloading {link} since it'd already been downloaded")
-            if link not in downloaded[platform]:
-                downloader.download(link, args.output)
-                downloaded[platform].append(link)
+        ydl_opts = {
+            "v": "true",
+            "nocheckcertificate": "true",
+            "restrictfilenames": "true",
+            "logger": logging.getLogger("youtube-dl")
+        }
+        for (filename, manifest) in videos:
+            if manifest not in downloaded[platform]:
+                dst = path.join(args.output, filename)
+                ydl_opts["outtmpl"] = dst+".%(ext)s"
+                main_logger.info(f"Downloading {url} as {filename}")
+                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([manifest])
+                downloaded[platform].append(manifest)
 
                 dl_json.seek(0)
                 dl_json.write(json.dumps(downloaded))
                 dl_json.truncate()
+            else:
+                main_logger.info(
+                    f"Not downloading {filename} since it'd already been downloaded")
         dl_json.close()
 
         main_logger.info("Downloaded completed")

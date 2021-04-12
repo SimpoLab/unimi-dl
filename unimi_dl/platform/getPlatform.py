@@ -17,17 +17,17 @@
 
 from __future__ import annotations
 
-class Downloader:
-    def __init__(self, email: str, password: str) -> None:
-        self.email    = email
-        self.password = password
+from .ariel import Ariel
+from .panopto import Panopto
+from .platform import Platform
 
-    def get_videos(self, url: str) -> list[str]:
-        """ Returns a list of links, which corresponds to the videos available for download, from the {url}
-        {url} must be the root page where the videos are published"""
-        raise NotImplementedError
 
-    def download(self, url: str, dst: str):
-        """ Downloads file from the provided {url} and saves it in {dst}
-        Note that the path should include the name to be assigned to the downloaded file"""
-        raise NotImplementedError
+def getPlatform(email: str, password: str, platform: str) -> Platform:
+    """ Factory method to create the appropriate Platform instance. """
+
+    if platform == 'ariel':
+        return Ariel(email, password)
+    if platform == 'panopto':
+        return Panopto(email, password)
+
+    raise NotImplementedError

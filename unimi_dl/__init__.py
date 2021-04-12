@@ -18,5 +18,5 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __license__ = "GPL v.3"
