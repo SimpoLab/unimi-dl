@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2021 Alessandro Clerici Lorenzini and Zhifan Chen.
 #
 # This file is part of unimi-dl.
@@ -33,9 +31,8 @@ from requests import __version__ as reqv
 import youtube_dl
 from youtube_dl.version import __version__ as ytdv
 
-from unimi_dl.__init__ import __version__ as version
-
-from .platform.getPlatform import getPlatform
+from . import __version__ as udlv
+from .platform import getPlatform
 
 
 def get_datadir() -> pathlib.Path:
@@ -68,7 +65,7 @@ def main():
         os.makedirs(local)
 
     parser = argparse.ArgumentParser(
-        description=f"Unimi material downloader v. {version}")
+        description=f"Unimi material downloader v. {udlv}")
     parser.add_argument("url", metavar="URL", type=str,
                         help="URL of the video(s) to download")
     parser.add_argument("-p", "--platform", metavar="platform",
@@ -112,7 +109,7 @@ def main():
 
     main_logger.debug("=============job-start=============")
     main_logger.debug(f"""Detected system info:
-    unimi-dl: {version}
+    unimi-dl: {udlv}
     OS: {pt.platform()}
     Release: {pt.release()}
     Version: {pt.version()}
@@ -180,7 +177,8 @@ def main():
                 main_logger.warning("Error parsing cache json")
 
     if not os.access(args.output, os.W_OK):
-        main_logger.warning(f"can't write to directory {args.output}")
+        main_logger.error(f"can't write to directory {args.output}")
+        exit(1)
     else:
         ydl_opts = {
             "v": "true",
@@ -191,8 +189,8 @@ def main():
         for (filename, manifest) in videos:
             if manifest not in downloaded[platform]:
                 dst = path.join(args.output, filename)
-                ydl_opts["outtmpl"] = dst+".%(ext)s"
-                main_logger.info(f"Downloading {url} as {filename}")
+                ydl_opts["outtmpl"] = dst + ".%(ext)s"
+                main_logger.info(f"Downloading {filename}")
                 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([manifest])
                 downloaded[platform].append(manifest)

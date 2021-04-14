@@ -16,7 +16,8 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from .cmd import main
+from .getPlatform import getPlatform
+from .ariel import Ariel
+from .panopto import Panopto
 
-if __name__ == '__main__':
-    main()
+__all__ = ["ariel", "getPlatform", "panopto", "platform"]

@@ -54,7 +54,7 @@ setup(
     install_requires=["requests", "youtube-dl"],
     entry_points={
         "console_scripts": [
-            "unimi-dl=unimi_dl.__main__:main"
+            "unimi-dl=unimi_dl.cmd:main"
         ]
     }
 )

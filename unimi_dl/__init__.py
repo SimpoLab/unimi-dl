@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2021 Alessandro Clerici Lorenzini and Zhifan Chen.
 #
 # This file is part of unimi-dl.
@@ -20,3 +18,7 @@
 
 __version__ = "0.2.0"
 __license__ = "GPL v.3"
+
+import unimi_dl.platform
+
+__all__ = ["cmd"]
