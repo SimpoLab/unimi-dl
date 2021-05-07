@@ -16,7 +16,7 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
-__version__ = "0.2.0"
+__version__ = "0.2.0.1 alpha"
 __license__ = "GPL v.3"
 
 import unimi_dl.platform
