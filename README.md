@@ -55,7 +55,7 @@ Nota: con questo metodo è necessario tenere la repo clonata per fare uso del so
 
 
 ## Utilizzo
-Al momento l'unico portale supportato è Ariel. Tieni presente che il software è sotto heavy-developement, per cui potrebbe essere necessario o utile [aggiornarlo](#Update) periodicamente.
+Tieni presente che il software è sotto heavy-developement, per cui potrebbe essere necessario o utile [aggiornarlo](#Update) periodicamente.
 ```
 usage: unimi-dl [-h] [-p platform] [-s] [--ask] [-c PATH] [-o PATH] [-v]
                    URL
@@ -84,19 +84,26 @@ Il programma tiene traccia, in un file di cache, dei video scaricati, in modo da
 ### Ariel
 Usando il tuo browser, trova la pagina che contiene i video che vuoi scaricare, copiane l'URL e usalo come segue:
 ```
-unimi-dl "https://unsito.ariel.ctu.unimi.it/paginadelleregistrazioni"
+unimi-dl -p ariel "https://unsito.ariel.ctu.unimi.it/paginadelleregistrazioni"
 ```
 Il programma scaricherà tutti i video della pagina non presenti nella cache.
+
+### Panopto (labonline)
+Usando il tuo browser, trova la pagina che contiene l'anteprima video che vuoi scaricare. L'anteprima deve apparire in un riquadro con in basso a destra la freccia :arrow_upper_right: (in gergo, un `iframe`). Copia l'URL della pagina e usalo come segue:
+```
+unimi-dl -p panopto "https://unsito.labonline.ctu.unimi.it/paginedellanteprima"
+```
+
 
 
 
 ## Features
-- [x] scaricare video da Ariel
-- [x] tenere salvate le credenziali
 - [x] non ripetere download già effettuati
+- [x] scaricare video da Ariel
+- [x] scaricare video da Panopto
+- [x] tenere salvate le credenziali
 - [ ] controllare che le credenziali siano valide
 - [ ] permettere la scelta interattiva di video da scaricare o eliminare dalla cache
-- [ ] scaricare video da Panopto
 - [ ] scaricare video da Microsoft Stream
 
 
