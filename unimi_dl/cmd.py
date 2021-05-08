@@ -16,16 +16,17 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import argparse
+from argparse import ArgumentParser, Namespace
 from getpass import getpass
-import json
+from io import TextIOWrapper
+from json import dumps as json_dumps, load as json_load
 from json.decoder import JSONDecodeError
 import logging
-from os import path
 import os
-import pathlib
+from pathlib import Path
 import platform as pt
 import sys
+from time import time
 
 from requests import __version__ as reqv
 import youtube_dl
@@ -35,17 +36,15 @@ from . import __version__ as udlv
 from .platform import getPlatform
 
 
-def get_datadir() -> pathlib.Path:
-    """
-    Returns a parent directory path
+def get_data_dir() -> Path:
+    """ Returns a parent directory path
     where persistent application data can be stored.
 
     # linux: ~/.local/share
     # macOS: ~/Library/Application Support
-    # windows: C:/Users/<USER>/AppData/Roaming
-    """
+    # windows: C:/Users/<USER>/AppData/Roaming """
 
-    home = pathlib.Path.home()
+    home = Path.home()
 
     if sys.platform == "win32":
         return home / "AppData/Roaming"
@@ -57,14 +56,8 @@ def get_datadir() -> pathlib.Path:
         raise NotImplementedError
 
 
-def main():
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
-    local = os.path.join(get_datadir(), "unimi-dl")
-
-    if not os.path.isdir(local):
-        os.makedirs(local)
-
-    parser = argparse.ArgumentParser(
+def get_args(local: str) -> Namespace:
+    parser = ArgumentParser(
         description=f"Unimi material downloader v. {udlv}")
     parser.add_argument("url", metavar="URL", type=str,
                         help="URL of the video(s) to download")
@@ -83,12 +76,18 @@ def main():
                         type=str, default=os.getcwd(), help="directory to download the video(s) into")
     parser.add_argument("-v", "--verbose", action="store_true")
 
-    args = parser.parse_args()
+    opts = parser.parse_args()
+    opts.url = opts.url.replace("\\", "")
+    return opts
 
-    # init
-    log_path = os.path.join(local, "log.txt")
+
+def log_setup(verbose: bool, local: str) -> None:
+    # silencing spammy logger
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+
+    # setting up stdout handler
     stdout_handler = logging.StreamHandler(sys.stdout)
-    if args.verbose:
+    if verbose:
         stdout_handler.setLevel(logging.INFO)
         stdout_handler.setFormatter(
             logging.Formatter("%(message)s"))
@@ -96,44 +95,26 @@ def main():
         stdout_handler.setLevel(logging.WARNING)
         stdout_handler.setFormatter(
             logging.Formatter("%(levelname)s: %(message)s"))
-    file_handler = logging.FileHandler(log_path)
+
+    # setting up file handler
+    file_handler = logging.FileHandler(os.path.join(local, "log.txt"))
     file_handler.setFormatter(logging.Formatter(
         "%(levelname)s[%(name)s]: %(message)s"))
-    handlers = [file_handler, stdout_handler]
-    cache = os.path.join(local, "downloaded.json")
-    url = args.url.replace("\\", "")
-    platform = args.platform
 
-    logging.basicConfig(level=logging.DEBUG, handlers=handlers)
+    # finalizing
+    logging.basicConfig(level=logging.DEBUG, handlers=[
+                        file_handler, stdout_handler])
+
+
+def get_credentials(credentials_file: str, ask: bool, save: bool) -> tuple[str, str]:
     main_logger = logging.getLogger(__name__)
-
-    main_logger.debug("=============job-start=============")
-    main_logger.debug(f"""Detected system info:
-    unimi-dl: {udlv}
-    OS: {pt.platform()}
-    Release: {pt.release()}
-    Version: {pt.version()}
-    Local: {local}
-    Python: {sys.version}
-    Requests: {reqv}
-    YoutubeDL: {ytdv}
-    Cache: {cache}""")
-
-    main_logger.debug(f"""Request info:
-    URL: {url}
-    Platform: {platform}
-    Save: {args.save}
-    Ask: {args.ask}
-    Credentials: {args.credentials}
-    Output: {args.output}""")
-
     email = None
     password = None
     creds = {}
-    if os.path.isfile(args.credentials):
-        with open(args.credentials, "r") as cred_json:
+    if os.path.isfile(credentials_file):
+        with open(credentials_file, "r") as cred_json:
             try:
-                creds = json.load(cred_json)
+                creds = json_load(cred_json)
             except JSONDecodeError:
                 main_logger.warning("Error parsing credentials json")
             try:
@@ -142,42 +123,45 @@ def main():
             except KeyError:
                 pass
 
-    if email == None or password == None or args.ask:
+    if email == None or password == None or ask:
         main_logger.info(f"Asking credentials")
         print(f"Insert credentials")
         email = input(f"username/email: ")
         password = getpass(f"password (input won't be shown): ")
-        if args.save:
+        if save:
             creds = {"email": email, "password": password}
-            head, _ = os.path.split(args.credentials)
+            head, _ = os.path.split(credentials_file)
             if not os.access(head, os.W_OK):
                 main_logger.warning(f"Can't write to directory {head}")
             else:
-                with open(args.credentials, "w") as new_credentials:
-                    new_credentials.write(json.dumps(creds))
+                with open(credentials_file, "w") as new_credentials:
+                    new_credentials.write(json_dumps(creds))
                     main_logger.info(
-                        f"Credentials saved succesfully in {local}")
+                        f"Credentials saved succesfully in {credentials_file}")
+    return email, password
 
-    platform_instance = getPlatform(email, password, platform)
-    videos = platform_instance.get_manifests(url)
-    video_list = [video for video, _ in videos]
-    main_logger.info(f"Videos: {video_list}")
 
-    downloaded = {platform: []}
-    if not os.path.isfile(cache):
-        dl_json = open(cache, "w")
+def get_downloaded(downloaded_path: str, platform: str) -> tuple[dict[str, list[str]], TextIOWrapper]:
+    main_logger = logging.getLogger(__name__)
+    downloaded_list = {platform: []}
+    if not os.path.isfile(downloaded_path):
+        downloaded_file = open(downloaded_path, "w")
     else:
-        dl_json = open(cache, "r+")
-        if os.stat(cache).st_size:
+        downloaded_file = open(downloaded_path, "r+")
+        if os.stat(downloaded_path).st_size:
             try:
-                downloaded = json.load(dl_json)
-                if platform not in downloaded:
-                    downloaded[platform] = []
-            except json.decoder.JSONDecodeError:
-                main_logger.warning("Error parsing cache json")
+                downloaded_list = json_load(downloaded_file)
+                if platform not in downloaded_list:
+                    downloaded_list[platform] = []
+            except JSONDecodeError:
+                main_logger.warning("Error parsing downloaded json")
+    return downloaded_list, downloaded_file
 
-    if not os.access(args.output, os.W_OK):
-        main_logger.error(f"can't write to directory {args.output}")
+
+def download(output_path: str, manifest_list: list[tuple[str, str]], downloaded_list: dict, downloaded_file: TextIOWrapper, platform: str):
+    main_logger = logging.getLogger(__name__)
+    if not os.access(output_path, os.W_OK):
+        main_logger.error(f"can't write to directory {output_path}")
         exit(1)
     else:
         ydl_opts = {
@@ -186,21 +170,65 @@ def main():
             "restrictfilenames": "true",
             "logger": logging.getLogger("youtube-dl")
         }
-        for (filename, manifest) in videos:
-            if manifest not in downloaded[platform]:
-                dst = path.join(args.output, filename)
-                ydl_opts["outtmpl"] = dst + ".%(ext)s"
+        for (filename, manifest) in manifest_list:
+            if manifest not in downloaded_list[platform]:
+                output_path = os.path.join(output_path, filename)
+                ydl_opts["outtmpl"] = output_path + ".%(ext)s"
                 main_logger.info(f"Downloading {filename}")
                 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([manifest])
-                downloaded[platform].append(manifest)
+                downloaded_list[platform].append(manifest)
 
-                dl_json.seek(0)
-                dl_json.write(json.dumps(downloaded))
-                dl_json.truncate()
+                downloaded_file.seek(0)
+                downloaded_file.write(json_dumps(downloaded_list))
+                downloaded_file.truncate()
             else:
                 main_logger.info(
                     f"Not downloading {filename} since it'd already been downloaded")
-        dl_json.close()
+        downloaded_file.close()
 
-        main_logger.info("Downloaded completed")
+    main_logger.info("Downloaded completed")
+
+
+def main():
+    local_path = os.path.join(get_data_dir(), "unimi-dl")
+    if not os.path.isdir(local_path):
+        os.makedirs(local_path)
+
+    opts = get_args(local_path)
+    downloaded_path = os.path.join(local_path, "downloaded.json")
+    log_setup(opts.verbose, local_path)
+    main_logger = logging.getLogger(__name__)
+
+    main_logger.debug(f"=============job start at {time()}=============")
+    main_logger.debug(f"""Detected system info:
+    unimi-dl: {udlv}
+    OS: {pt.platform()}
+    Release: {pt.release()}
+    Version: {pt.version()}
+    Local: {local_path}
+    Python: {sys.version}
+    Requests: {reqv}
+    YoutubeDL: {ytdv}
+    Downloaded file: {downloaded_path}""")
+    main_logger.debug(f"""Request info:
+    URL: {opts.url}
+    Platform: {opts.platform}
+    Save: {opts.save}
+    Ask: {opts.ask}
+    Credentials: {opts.credentials}
+    Output: {opts.output}""")
+
+    email, password = get_credentials(opts.credentials, opts.ask, opts.save)
+
+    manifest_list = getPlatform(
+        email, password, opts.platform).get_manifests(opts.url)
+
+    main_logger.info(f"Videos: {[video for video, _ in manifest_list]}")
+
+    downloaded_list, downloaded_file = get_downloaded(
+        downloaded_path, opts.platform)
+
+    download(opts.output, manifest_list,
+             downloaded_list, downloaded_file, opts.platform)
+    main_logger.debug(f"=============job end at {time()}=============\n")
