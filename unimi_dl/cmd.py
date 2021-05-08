@@ -75,6 +75,8 @@ def get_args(local: str) -> Namespace:
     parser.add_argument("-o", "--output", metavar="PATH",
                         type=str, default=os.getcwd(), help="directory to download the video(s) into")
     parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument('--version', action='version',
+                        version=f"%(prog)s {udlv}")
 
     opts = parser.parse_args()
     opts.url = opts.url.replace("\\", "")
