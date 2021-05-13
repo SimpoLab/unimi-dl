@@ -17,6 +17,7 @@
 
 
 from argparse import ArgumentParser, Namespace
+from datetime import datetime
 from getpass import getpass
 from io import TextIOWrapper
 from json import dumps as json_dumps, load as json_load
@@ -26,7 +27,6 @@ import os
 from pathlib import Path
 import platform as pt
 import sys
-from time import time
 
 from requests import __version__ as reqv
 import youtube_dl
@@ -66,6 +66,8 @@ def get_args(local: str) -> Namespace:
                         help="platform to download the video(s) from (default: ariel)")
     parser.add_argument("-s", "--save", action="store_true",
                         help=f"saves credentials (unencrypted) in {local}/credentials.json")
+    parser.add_argument("--simulate", action="store_true",
+                        help=f"retrieve video names and manifests, but don't download anything nor update the downloaded list")
     parser.add_argument("--ask", action="store_true",
                         help=f"asks credentials even if stored")
     parser.add_argument("-c", "--credentials", metavar="PATH",
@@ -160,7 +162,7 @@ def get_downloaded(downloaded_path: str, platform: str) -> tuple[dict[str, list[
     return downloaded_list, downloaded_file
 
 
-def download(output_basepath: str, manifest_list: list[tuple[str, str]], downloaded_list: dict, downloaded_file: TextIOWrapper, platform: str):
+def download(output_basepath: str, manifest_list: list[tuple[str, str]], downloaded_list: dict, downloaded_file: TextIOWrapper, platform: str, simulate: bool):
     main_logger = logging.getLogger(__name__)
     if not os.access(output_basepath, os.W_OK):
         main_logger.error(f"can't write to directory {output_basepath}")
@@ -177,13 +179,14 @@ def download(output_basepath: str, manifest_list: list[tuple[str, str]], downloa
                 output_path = os.path.join(output_basepath, filename)
                 ydl_opts["outtmpl"] = output_path + ".%(ext)s"
                 main_logger.info(f"Downloading {filename}")
-                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([manifest])
-                downloaded_list[platform].append(manifest)
+                if not simulate:
+                    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([manifest])
+                    downloaded_list[platform].append(manifest)
 
-                downloaded_file.seek(0)
-                downloaded_file.write(json_dumps(downloaded_list))
-                downloaded_file.truncate()
+                    downloaded_file.seek(0)
+                    downloaded_file.write(json_dumps(downloaded_list))
+                    downloaded_file.truncate()
             else:
                 main_logger.info(
                     f"Not downloading {filename} since it'd already been downloaded")
@@ -202,7 +205,8 @@ def main():
     log_setup(opts.verbose, local_path)
     main_logger = logging.getLogger(__name__)
 
-    main_logger.debug(f"=============job start at {time()}=============")
+    main_logger.debug(
+        f"=============job start at {datetime.now()}=============")
     main_logger.debug(f"""Detected system info:
     unimi-dl: {udlv}
     OS: {pt.platform()}
@@ -218,6 +222,7 @@ def main():
     Platform: {opts.platform}
     Save: {opts.save}
     Ask: {opts.ask}
+    Simulate: {opts.simulate}
     Credentials: {opts.credentials}
     Output: {opts.output}""")
 
@@ -231,6 +236,7 @@ def main():
     downloaded_list, downloaded_file = get_downloaded(
         downloaded_path, opts.platform)
 
-    download(opts.output, manifest_list,
-             downloaded_list, downloaded_file, opts.platform)
-    main_logger.debug(f"=============job end at {time()}=============\n")
+    download(opts.output, manifest_list, downloaded_list,
+             downloaded_file, opts.platform, opts.simulate)
+    main_logger.debug(
+        f"=============job end at {datetime.now()}=============\n")
