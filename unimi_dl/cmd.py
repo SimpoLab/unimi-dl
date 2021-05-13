@@ -160,10 +160,10 @@ def get_downloaded(downloaded_path: str, platform: str) -> tuple[dict[str, list[
     return downloaded_list, downloaded_file
 
 
-def download(output_path: str, manifest_list: list[tuple[str, str]], downloaded_list: dict, downloaded_file: TextIOWrapper, platform: str):
+def download(output_basepath: str, manifest_list: list[tuple[str, str]], downloaded_list: dict, downloaded_file: TextIOWrapper, platform: str):
     main_logger = logging.getLogger(__name__)
-    if not os.access(output_path, os.W_OK):
-        main_logger.error(f"can't write to directory {output_path}")
+    if not os.access(output_basepath, os.W_OK):
+        main_logger.error(f"can't write to directory {output_basepath}")
         exit(1)
     else:
         ydl_opts = {
@@ -174,7 +174,7 @@ def download(output_path: str, manifest_list: list[tuple[str, str]], downloaded_
         }
         for (filename, manifest) in manifest_list:
             if manifest not in downloaded_list[platform]:
-                output_path = os.path.join(output_path, filename)
+                output_path = os.path.join(output_basepath, filename)
                 ydl_opts["outtmpl"] = output_path + ".%(ext)s"
                 main_logger.info(f"Downloading {filename}")
                 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
