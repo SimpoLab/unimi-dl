@@ -22,6 +22,7 @@ import re
 
 import requests
 from urllib3 import disable_warnings
+import urllib.parse
 from urllib3.exceptions import InsecureRequestWarning
 
 from .ariel import get_ariel_session
@@ -53,11 +54,17 @@ class Panopto(Platform):
         manifest_page = self.session.get(iframe_url).text
 
         self.logger.info("Collecting manifests")
-        manifest_re = re.compile(r"\"VideoUrl\":\"(https:.*?\.m3u8)\"")
-        manifest = manifest_re.search(manifest_page)[1].replace("\\", "")
+        manifest = re.compile(
+            r"\"VideoUrl\":\"(https:.*?\.m3u8)\"").search(manifest_page)
+        if not manifest:
+            self.logger.info("No manifest found")
+            return []
 
         self.logger.info("Fetching video names")
-        title_re = re.compile(r"<title>(.*?)</title>")
-        filename = title_re.search(manifest_page)[1]
+        filename_match = re.compile(
+            r"<title>(.*?)</title>").search(manifest_page)
 
-        return [(filename, manifest)]
+        filename = filename_match[1] if filename_match and filename_match[1] else urllib.parse.urlparse(url)[
+            1]
+
+        return [(filename, manifest[1].replace("\\", ""))]

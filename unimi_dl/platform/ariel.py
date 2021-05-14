@@ -47,15 +47,11 @@ class Ariel(Platform):
         self.logger.info("Getting video page")
         video_page = self.session.get(url).text
 
-        self.logger.info("Collecting manifests")
-        manifest_re = re.compile(r"https://.*/manifest\.m3u8")
-        match = manifest_re.findall(video_page)
-
+        self.logger.info("Collecting manifests and video names")
         res = []
-        filename_re = re.compile(
-            r"https://videolectures.unimi.it/vod/mp4:(.*?)\..*?/manifest.m3u8")
-        self.logger.info("Fetching video names")
-        for manifest in match:
-            filename = urllib.parse.unquote(filename_re.search(manifest)[1])
-            res.append((filename, manifest))
+        manifest_re = re.compile(
+            r"https://.*?/mp4:.*?([^/]*?)\.mp4/manifest.m3u8")
+        for i, manifest in enumerate(manifest_re.finditer(video_page)):
+            res.append((urllib.parse.unquote(
+                manifest[1]) if manifest[1] else urllib.parse.urlparse(url)[1]+str(i), manifest[0]))
         return res
