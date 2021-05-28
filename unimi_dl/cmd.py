@@ -27,6 +27,7 @@ import os
 from pathlib import Path
 import platform as pt
 import sys
+from .multi_select import multi_select, WrongSelectionError
 
 from requests import __version__ as reqv
 import youtube_dl
@@ -77,6 +78,8 @@ def get_args(local: str) -> Namespace:
     parser.add_argument("-o", "--output", metavar="PATH",
                         type=str, default=os.getcwd(), help="directory to download the video(s) into")
     parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument("-a", "--all", action="store_true",
+                        help="Download all videos not already present")
     parser.add_argument('--version', action='version',
                         version=f"%(prog)s {udlv}")
 
@@ -145,24 +148,25 @@ def get_credentials(credentials_file: str, ask: bool, save: bool) -> tuple[str, 
     return email, password
 
 
-def get_downloaded(downloaded_path: str, platform: str) -> tuple[dict[str, list[str]], TextIOWrapper]:
+def get_downloaded(downloaded_path: str, platform: str) -> tuple[dict[str, dict[str, str]], TextIOWrapper]:
     main_logger = logging.getLogger(__name__)
-    downloaded_list = {platform: []}
+    downloaded_dict = {platform: {}}
     if not os.path.isfile(downloaded_path):
         downloaded_file = open(downloaded_path, "w")
     else:
         downloaded_file = open(downloaded_path, "r+")
         if os.stat(downloaded_path).st_size:
             try:
-                downloaded_list = json_load(downloaded_file)
-                if platform not in downloaded_list:
-                    downloaded_list[platform] = []
+                downloaded_dict = json_load(downloaded_file)
+                if platform not in downloaded_dict:
+                    downloaded_dict[platform] = {}
             except JSONDecodeError:
-                main_logger.warning("Error parsing downloaded json")
-    return downloaded_list, downloaded_file
+                main_logger.warning(
+                    f"Error parsing downloaded json. Consider deleting {downloaded_path}")
+    return downloaded_dict, downloaded_file
 
 
-def download(output_basepath: str, manifest_list: list[tuple[str, str]], downloaded_list: dict, downloaded_file: TextIOWrapper, platform: str, simulate: bool):
+def download(output_basepath: str, manifest_dict: dict[str, str], downloaded_dict: dict, downloaded_file: TextIOWrapper, platform: str, simulate: bool):
     main_logger = logging.getLogger(__name__)
     if not os.access(output_basepath, os.W_OK):
         main_logger.error(f"can't write to directory {output_basepath}")
@@ -174,18 +178,19 @@ def download(output_basepath: str, manifest_list: list[tuple[str, str]], downloa
             "restrictfilenames": "true",
             "logger": logging.getLogger("youtube-dl")
         }
-        for (filename, manifest) in manifest_list:
-            if manifest not in downloaded_list[platform]:
+        for filename in manifest_dict:
+            manifest = manifest_dict[filename]
+            if manifest not in downloaded_dict[platform]:
                 output_path = os.path.join(output_basepath, filename)
                 ydl_opts["outtmpl"] = output_path + ".%(ext)s"
                 main_logger.info(f"Downloading {filename}")
                 if not simulate:
                     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                         ydl.download([manifest])
-                    downloaded_list[platform].append(manifest)
+                    downloaded_dict[platform][manifest] = filename
 
                     downloaded_file.seek(0)
-                    downloaded_file.write(json_dumps(downloaded_list))
+                    downloaded_file.write(json_dumps(downloaded_dict))
                     downloaded_file.truncate()
             else:
                 main_logger.info(
@@ -222,21 +227,33 @@ def main():
     Platform: {opts.platform}
     Save: {opts.save}
     Ask: {opts.ask}
+    All: {opts.all}
     Simulate: {opts.simulate}
     Credentials: {opts.credentials}
     Output: {opts.output}""")
 
     email, password = get_credentials(opts.credentials, opts.ask, opts.save)
 
-    manifest_list = getPlatform(
+    all_manifest_dict = getPlatform(
         email, password, opts.platform).get_manifests(opts.url)
 
-    main_logger.info(f"Videos: {[video for video, _ in manifest_list]}")
+    if opts.all or opts.platform == "panopto":
+        manifest_dict = all_manifest_dict
+    else:
+        try:
+            selection = multi_select(
+                list(all_manifest_dict.keys()), text="\nDownload these videos: ")
+        except multi_select.WrongSelectionError:
+            main_logger.error("Your selection is not valid")
+            exit(1)
+        manifest_dict = {name: all_manifest_dict[name] for name in selection}
 
-    downloaded_list, downloaded_file = get_downloaded(
+    main_logger.info(f"Videos: {manifest_dict.keys()}")
+
+    downloaded_dict, downloaded_file = get_downloaded(
         downloaded_path, opts.platform)
 
-    download(opts.output, manifest_list, downloaded_list,
+    download(opts.output, manifest_dict, downloaded_dict,
              downloaded_file, opts.platform, opts.simulate)
     main_logger.debug(
         f"=============job end at {datetime.now()}=============\n")

@@ -24,7 +24,7 @@ class Platform:
         self.email = email
         self.password = password
 
-    def get_manifests(self, url: str) -> list[tuple[str, str]]:
+    def get_manifests(self, url: str) -> dict[str, str]:
         """ Returns a list of couples, each one containing a filename and relative
         manifest, fetched from {url} """
 

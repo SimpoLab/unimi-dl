@@ -44,7 +44,7 @@ class Panopto(Platform):
         self.logger.info("Logging in")
         self.session = get_panopto_session(email, password)
 
-    def get_manifests(self, url: str) -> list[tuple[str, str]]:
+    def get_manifests(self, url: str) -> dict[str, str]:
         self.logger.info("Getting video page")
         video_page = self.session.get(url).text
 
@@ -58,7 +58,7 @@ class Panopto(Platform):
             r"\"VideoUrl\":\"(https:.*?\.m3u8)\"").search(manifest_page)
         if not manifest:
             self.logger.info("No manifest found")
-            return []
+            return {}
 
         self.logger.info("Fetching video names")
         filename_match = re.compile(
@@ -67,4 +67,4 @@ class Panopto(Platform):
         filename = filename_match[1] if filename_match and filename_match[1] else urllib.parse.urlparse(url)[
             1]
 
-        return [(filename, manifest[1].replace("\\", ""))]
+        return {filename: manifest[1].replace("\\", "")}

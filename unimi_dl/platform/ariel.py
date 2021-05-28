@@ -43,15 +43,18 @@ class Ariel(Platform):
         self.logger.info("Logging in")
         self.session = get_ariel_session(email, password)
 
-    def get_manifests(self, url: str) -> list[tuple[str, str]]:
+    def get_manifests(self, url: str) -> dict[str, str]:
         self.logger.info("Getting video page")
         video_page = self.session.get(url).text
 
         self.logger.info("Collecting manifests and video names")
-        res = []
+        res = {}
         manifest_re = re.compile(
             r"https://.*?/mp4:.*?([^/]*?)\.mp4/manifest.m3u8")
         for i, manifest in enumerate(manifest_re.finditer(video_page)):
-            res.append((urllib.parse.unquote(
-                manifest[1]) if manifest[1] else urllib.parse.urlparse(url)[1]+str(i), manifest[0]))
+            title = urllib.parse.unquote(
+                manifest[1]) if manifest[1] else urllib.parse.urlparse(url)[1]+str(i)
+            while title in res:
+                title += "_other"
+            res[title] = manifest[0]
         return res
