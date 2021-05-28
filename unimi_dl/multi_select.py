@@ -2,13 +2,20 @@ class WrongSelectionError(Exception):
     pass
 
 
-def multi_select(entries: list, text: str = "\nYour selection: ") -> list:
-    for i, item in enumerate(entries):
+def multi_select(entries: list, entries_text: list = None, selection_text: str = "\nYour selection: ") -> list:
+    if not entries_text:
+        entries_text = entries
+    elif len(entries_text) != len(entries):
+        raise ValueError("entries and entries_text must have the same length")
+
+    for i, item in enumerate(entries_text):
         print("%d.\t%s" % (i+1, item))
-    menu_input = input(text)
+    menu_input = input(selection_text)
 
     ranges = menu_input.strip().split(",")
     sel_indexes = set()
+    if len(ranges) == 1 and ranges[0] == "":
+        return []
     for rang in ranges:
         extremes = rang.split("-")
         if not 1 <= len(extremes) <= 2:

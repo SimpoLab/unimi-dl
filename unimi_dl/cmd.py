@@ -16,7 +16,7 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from argparse import ArgumentParser, Namespace
+from argparse import Action, ArgumentParser, Namespace, SUPPRESS
 from datetime import datetime
 from getpass import getpass
 from io import TextIOWrapper
@@ -27,13 +27,13 @@ import os
 from pathlib import Path
 import platform as pt
 import sys
-from .multi_select import multi_select, WrongSelectionError
 
 from requests import __version__ as reqv
 import youtube_dl
 from youtube_dl.version import __version__ as ytdv
 
 from . import __version__ as udlv
+from .multi_select import WrongSelectionError, multi_select
 from .platform import getPlatform
 
 
@@ -55,6 +55,17 @@ def get_data_dir() -> Path:
         return home / "Library/Application Support"
     else:
         raise NotImplementedError
+
+
+class CallFunctionAction(Action):
+    def __init__(self, option_strings, function=None, dest=SUPPRESS, default=SUPPRESS, help=None):
+        super(CallFunctionAction, self).__init__(
+            option_strings=option_strings, dest=dest, default=default, nargs=0, help=help)
+        self.function = function
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        self.function()
+        parser.exit()
 
 
 def get_args(local: str) -> Namespace:
@@ -79,7 +90,9 @@ def get_args(local: str) -> Namespace:
                         type=str, default=os.getcwd(), help="directory to download the video(s) into")
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("-a", "--all", action="store_true",
-                        help="Download all videos not already present")
+                        help="download all videos not already present")
+    parser.add_argument("--cleanup", action=CallFunctionAction, function=interactive_cleanup,
+                        help="interactively select what videos to clean from the downloaded list")
     parser.add_argument('--version', action='version',
                         version=f"%(prog)s {udlv}")
 
@@ -148,9 +161,9 @@ def get_credentials(credentials_file: str, ask: bool, save: bool) -> tuple[str, 
     return email, password
 
 
-def get_downloaded(downloaded_path: str, platform: str) -> tuple[dict[str, dict[str, str]], TextIOWrapper]:
+def get_downloaded(downloaded_path: str) -> tuple[dict[str, dict[str, str]], TextIOWrapper]:
     main_logger = logging.getLogger(__name__)
-    downloaded_dict = {platform: {}}
+    downloaded_dict = {}
     if not os.path.isfile(downloaded_path):
         downloaded_file = open(downloaded_path, "w")
     else:
@@ -158,15 +171,13 @@ def get_downloaded(downloaded_path: str, platform: str) -> tuple[dict[str, dict[
         if os.stat(downloaded_path).st_size:
             try:
                 downloaded_dict = json_load(downloaded_file)
-                if platform not in downloaded_dict:
-                    downloaded_dict[platform] = {}
             except JSONDecodeError:
                 main_logger.warning(
                     f"Error parsing downloaded json. Consider deleting {downloaded_path}")
     return downloaded_dict, downloaded_file
 
 
-def download(output_basepath: str, manifest_dict: dict[str, str], downloaded_dict: dict, downloaded_file: TextIOWrapper, platform: str, simulate: bool):
+def download(output_basepath: str, manifest_dict: dict[str, str], downloaded_dict: dict, downloaded_file: TextIOWrapper, simulate: bool):
     main_logger = logging.getLogger(__name__)
     if not os.access(output_basepath, os.W_OK):
         main_logger.error(f"can't write to directory {output_basepath}")
@@ -180,14 +191,14 @@ def download(output_basepath: str, manifest_dict: dict[str, str], downloaded_dic
         }
         for filename in manifest_dict:
             manifest = manifest_dict[filename]
-            if manifest not in downloaded_dict[platform]:
+            if manifest not in downloaded_dict:
                 output_path = os.path.join(output_basepath, filename)
                 ydl_opts["outtmpl"] = output_path + ".%(ext)s"
                 main_logger.info(f"Downloading {filename}")
                 if not simulate:
                     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                         ydl.download([manifest])
-                    downloaded_dict[platform][manifest] = filename
+                    downloaded_dict[manifest] = filename
 
                     downloaded_file.seek(0)
                     downloaded_file.write(json_dumps(downloaded_dict))
@@ -198,6 +209,31 @@ def download(output_basepath: str, manifest_dict: dict[str, str], downloaded_dic
         downloaded_file.close()
 
     main_logger.info("Downloaded completed")
+
+
+def interactive_cleanup() -> None:
+    local_path = os.path.join(get_data_dir(), "unimi-dl")
+    downloaded_path = os.path.join(local_path, "downloaded.json")
+    main_logger = logging.getLogger(__name__)
+    downloaded_dict, downloaded_file = get_downloaded(downloaded_path)
+
+    if len(downloaded_dict) == 0:
+        main_logger.warning("The downloaded list is empty!")
+        exit(0)
+    choices = list(downloaded_dict.keys())
+    entt = list(downloaded_dict.values())
+    try:
+        chosen = multi_select(choices, entries_text=entt,
+                              selection_text="\nRemove these videos from the downloaded list: ")
+    except WrongSelectionError:
+        main_logger.error("Your selection is not valid")
+        exit(1)
+    for manifest in chosen:
+        downloaded_dict.pop(manifest)
+    downloaded_file.seek(0)
+    downloaded_file.write(json_dumps(downloaded_dict))
+    downloaded_file.truncate()
+    downloaded_file.close()
 
 
 def main():
@@ -242,18 +278,18 @@ def main():
     else:
         try:
             selection = multi_select(
-                list(all_manifest_dict.keys()), text="\nDownload these videos: ")
-        except multi_select.WrongSelectionError:
+                list(all_manifest_dict.keys()), selection_text="\nDownload these videos: ")
+        except WrongSelectionError:
             main_logger.error("Your selection is not valid")
             exit(1)
         manifest_dict = {name: all_manifest_dict[name] for name in selection}
 
-    main_logger.info(f"Videos: {manifest_dict.keys()}")
+    main_logger.info(f"Videos: {list(manifest_dict.keys())}")
 
-    downloaded_dict, downloaded_file = get_downloaded(
-        downloaded_path, opts.platform)
+    downloaded_dict, downloaded_file = get_downloaded(downloaded_path)
 
     download(opts.output, manifest_dict, downloaded_dict,
-             downloaded_file, opts.platform, opts.simulate)
+             downloaded_file, opts.simulate)
+    downloaded_file.close()
     main_logger.debug(
         f"=============job end at {datetime.now()}=============\n")
