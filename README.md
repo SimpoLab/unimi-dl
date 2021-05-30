@@ -6,6 +6,26 @@ Script in Python 3 per scaricare videolezioni dai portali usati da Unimi.
 
 
 
+## What's new - v0.3 Menus
+Major improvements to usability.
+
+### Release notes
+
+#### Added
+- Interactive menus:
+	- The videos to download are now interactively chosen from a list, unless the `-a` option is specified. This behavior doesn't apply on Panopto since every URL corresponds to one video.
+	- Cleanup downloaded mode (`--cleanup-downloaded` option) lets the user choose what videos not to consider downloaded anymore (transparent API to `downloaded.json`)
+	- Wipe credentials mode (`--wipe-credentials` option) lets the user delete their saved credentials
+- Add to downloaded mode (`--add-to-downloaded-only` option) lets the user add the selected videos to the downloaded list without actually downloading them (differs from the `--simulate` option in that the latter doesn't add the videos to the list).
+- `-a` option lets the user download all videos which were not previously downloaded (the previous default behavior)
+
+#### Changed
+- The default behavior for downloading is now the interactive choice. For the previously default behavior use `-a`
+- IMPORTANT: the downloaded list now stores both the manifests and the video titles. The new format is not compatible with the old one, therefore you might have to delete `downloaded.json` (it resides in the same directory specified for `credentials.json` in `unimi-dl --help`)
+
+
+
+
 ## Quickstart
 ```
 pip3 install unimi-dl
@@ -57,8 +77,9 @@ Nota: con questo metodo è necessario tenere la repo clonata per fare uso del so
 ## Utilizzo
 Tieni presente che il software è sotto heavy-developement, per cui potrebbe essere necessario o utile [aggiornarlo](#Update) periodicamente.
 ```
-usage: unimi-dl [-h] [-p platform] [-s] [--ask] [-c PATH] [-o PATH] [-v]
-                   URL
+usage: unimi-dl [-h] [-p platform] [-s] [--ask] [-c PATH] [-o PATH] [-v] [-a] [--version] [--simulate] [--add-to-downloaded-only] [--cleanup-downloaded]
+                [--wipe-credentials]
+                URL
 
 Unimi material downloader
 
@@ -72,21 +93,37 @@ optional arguments:
   -s, --save            saves credentials (unencrypted) on disk for future use
   --ask                 asks credentials even if stored
   -c PATH, --credentials PATH
-                        path of the credentials json to be used for logging into
-			the platform
+                        path of the credentials json to be used for logging into the platform
   -o PATH, --output PATH
                         directory to download the video(s) into
-  -v, --verbose		verbose output
+  -v, --verbose
+  -a, --all             download all videos not already present
+  --version             show program's version number and exit
+
+other modes:
+  --simulate            retrieve video names and manifests, but don't download anything nor update the downloaded list
+  --add-to-downloaded-only
+                        retrieve video names and manifests, but don't download anything, only update the downloaded list
+  --cleanup-downloaded  interactively select what videos to clean from the downloaded list
+  --wipe-credentials    delete stored credentials
 ```
 
-Il programma tiene traccia, in un file di cache, dei video scaricati, in modo da evitare di ripeterne il download. Per forzare il redownload di uno o più video è sufficiente editare o eliminare tale file. In futuro il programma includerà un modo più automatizzato/user-friendly per farlo.
+In modalità download, modalità di default quando viene inserito un URL, il software recupera i video disponibili e mostra un menu in cui l'utente seleziona quali scaricare. La selezione può essere effettuata specificando i numeri che corrispondono ai video come lista di range separati da virgole, ad esempio `1,3-5,12, 14 - 20`. Il menu non viene mostrato per la piattaforma Panopto dal momento che ad ora vi si può scaricare un solo video per volta.
+
+Il programma tiene traccia, in un file di cache, dei video scaricati, in modo da evitare di ripeterne il download.
+
+La modalità simulate (`--simulate`) e la modalità add to downloaded only (`--add-to-downloaded-only`) equivalgono alla modalità download se non nel fatto che la prima simula l'esecuzione senza scaricare né aggiungere alla lista degli scaricati e la seconda aggiunge solo alla lista degli scaricati, senza scaricare.
+
+La modalità cleanup downloaded (`--cleanup-downloaded`) permette di scegliere interattivamente quali video rimuovere dalla lista degli scaricati la selezione funziona esattamente come quella per scaricare in modalità download.
+
+La modalità wipe credentials (`--wipe-credentials`) permette di eliminare le credenziali salvate con `--save`. Si noti che per sovrascrivere le credenziali salvate con nuove è sufficiente specificare i due flag `--save` e `--ask` contemporaneamente.
+
 
 ### Ariel
 Usando il tuo browser, trova la pagina che contiene i video che vuoi scaricare, copiane l'URL e usalo come segue:
 ```
 unimi-dl -p ariel "https://unsito.ariel.ctu.unimi.it/paginadelleregistrazioni"
 ```
-Il programma scaricherà tutti i video della pagina non presenti nella cache.
 
 ### Panopto (labonline)
 Usando il tuo browser, trova la pagina che contiene l'anteprima video che vuoi scaricare. L'anteprima deve apparire in un riquadro con in basso a destra la freccia :arrow_upper_right: (in gergo, un `iframe`). Copia l'URL della pagina e usalo come segue:
@@ -99,11 +136,12 @@ unimi-dl -p panopto "https://unsito.labonline.ctu.unimi.it/paginedellanteprima"
 
 ## Features
 - [x] non ripetere download già effettuati
+- [x] permettere l'eliminazione trasparente delle credenziali
+- [x] permettere la scelta interattiva di video da scaricare o eliminare dalla cache
 - [x] scaricare video da Ariel
 - [x] scaricare video da Panopto
 - [x] tenere salvate le credenziali
 - [ ] controllare che le credenziali siano valide
-- [ ] permettere la scelta interattiva di video da scaricare o eliminare dalla cache
 - [ ] scaricare video da Microsoft Stream
 
 
