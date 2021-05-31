@@ -3,8 +3,12 @@
 
 
 
-## [UNRELEASED] v0.3 Menus
+## v0.3 Menus
 Major improvements to usability.
+
+
+### Download
+See [PyPI release page](https://pypi.org/project/unimi-dl/0.3.0)
 
 
 ### Release notes

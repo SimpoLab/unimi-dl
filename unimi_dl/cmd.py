@@ -223,11 +223,12 @@ def cleanup_downloaded(downloaded_path: str) -> None:
         main_logger.error("Your selection is not valid")
         exit(1)
     main_logger.debug(f"{len(chosen)} names chosen")
-    for manifest in chosen:
-        downloaded_dict.pop(manifest)
-    downloaded_file.seek(0)
-    downloaded_file.write(json_dumps(downloaded_dict))
-    downloaded_file.truncate()
+    if len(chosen) != 0:
+        for manifest in chosen:
+            downloaded_dict.pop(manifest)
+        downloaded_file.seek(0)
+        downloaded_file.write(json_dumps(downloaded_dict))
+        downloaded_file.truncate()
     downloaded_file.close()
     main_logger.info("Cleanup done")
 
@@ -299,23 +300,28 @@ def main():
     all_manifest_dict = getPlatform(
         email, password, opts.platform).get_manifests(opts.url)
 
-    if opts.all or opts.platform == "panopto":
-        manifest_dict = all_manifest_dict
+    if len(all_manifest_dict) == 0:
+        main_logger.warning("No videos found")
     else:
-        try:
-            selection = multi_select(
-                list(all_manifest_dict.keys()), selection_text="\nVideos to download: ")
-        except WrongSelectionError:
-            main_logger.error("Your selection is not valid")
-            exit(1)
-        manifest_dict = {name: all_manifest_dict[name] for name in selection}
+        if opts.all or opts.platform == "panopto":
+            manifest_dict = all_manifest_dict
+        else:
+            try:
+                selection = multi_select(
+                    list(all_manifest_dict.keys()), selection_text="\nVideos to download: ")
+            except WrongSelectionError:
+                main_logger.error("Your selection is not valid")
+                exit(1)
+            manifest_dict = {
+                name: all_manifest_dict[name] for name in selection}
 
-    main_logger.info(f"Videos: {list(manifest_dict.keys())}")
+        if len(manifest_dict) != 0:
+            main_logger.info(f"Videos: {list(manifest_dict.keys())}")
 
-    downloaded_dict, downloaded_file = get_downloaded(downloaded_path)
+            downloaded_dict, downloaded_file = get_downloaded(downloaded_path)
 
-    download(opts.output, manifest_dict, downloaded_dict,
-             downloaded_file, opts.simulate, opts.add_to_downloaded_only)
-    downloaded_file.close()
+            download(opts.output, manifest_dict, downloaded_dict,
+                     downloaded_file, opts.simulate, opts.add_to_downloaded_only)
+            downloaded_file.close()
     main_logger.debug(
         f"=============job end at {datetime.now()}=============\n")

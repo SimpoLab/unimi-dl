@@ -21,7 +21,7 @@ Major improvements to usability.
 
 #### Changed
 - The default behavior for downloading is now the interactive choice. For the previously default behavior use `-a`
-- IMPORTANT: the downloaded list now stores both the manifests and the video titles. The new format is not compatible with the old one, therefore you might have to delete `downloaded.json` (it resides in the same directory specified for `credentials.json` in `unimi-dl --help`)
+- IMPORTANT: the downloaded list now stores both the manifests and the video titles. The new format is not compatible with the old one, therefore you might have to delete `downloaded.json` (it resides in the same directory specified for `credentials.json` in `unimi-dl --help`). In this case you may find useful using `--add-to-downloaded-only` for re-adding previously downloaded videos.
 
 
 
