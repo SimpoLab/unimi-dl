@@ -4,6 +4,8 @@
 
 Script in Python 3 per scaricare videolezioni dai portali usati da Unimi.
 
+[English](README_EN.md)
+
 
 
 ## What's new - v0.3 Menus
@@ -75,7 +77,7 @@ Nota: con questo metodo è necessario tenere la repo clonata per fare uso del so
 
 
 ## Utilizzo
-Tieni presente che il software è sotto heavy-developement, per cui potrebbe essere necessario o utile [aggiornarlo](#Update) periodicamente.
+Tieni presente che il software è sotto heavy-development, per cui potrebbe essere necessario o utile [aggiornarlo](#Update) periodicamente.
 ```
 usage: unimi-dl [-h] [-p platform] [-s] [--ask] [-c PATH] [-o PATH] [-v] [-a] [--version] [--simulate] [--add-to-downloaded-only] [--cleanup-downloaded]
                 [--wipe-credentials]
@@ -114,7 +116,7 @@ Il programma tiene traccia, in un file di cache, dei video scaricati, in modo da
 
 La modalità simulate (`--simulate`) e la modalità add to downloaded only (`--add-to-downloaded-only`) equivalgono alla modalità download se non nel fatto che la prima simula l'esecuzione senza scaricare né aggiungere alla lista degli scaricati e la seconda aggiunge solo alla lista degli scaricati, senza scaricare.
 
-La modalità cleanup downloaded (`--cleanup-downloaded`) permette di scegliere interattivamente quali video rimuovere dalla lista degli scaricati la selezione funziona esattamente come quella per scaricare in modalità download.
+La modalità cleanup downloaded (`--cleanup-downloaded`) permette di scegliere interattivamente quali video rimuovere dalla lista degli scaricati. La selezione funziona esattamente come quella per scaricare in modalità download.
 
 La modalità wipe credentials (`--wipe-credentials`) permette di eliminare le credenziali salvate con `--save`. Si noti che per sovrascrivere le credenziali salvate con nuove è sufficiente specificare i due flag `--save` e `--ask` contemporaneamente.
 
@@ -164,12 +166,12 @@ git pull
 
 
 ## Disclaimer
-No, non è illegale. Non stiamo facendo ridistribuzione non autorizzata. Chi ha accesso ai web player può scaricare i video. Crediamo che poter scaricare i video renda molto più semplice fruirne, potendo sfruttare, ad esempio, i vantaggi dei player e evitarci il fastidio di una cattiva connessione.
+No, non è illegale. Non stiamo facendo ridistribuzione non autorizzata. Chi ha accesso ai web player può scaricare i video. Crediamo che poter scaricare i video renda molto più semplice fruirne, potendo sfruttare, ad esempio, i vantaggi dei player offline e evitarci il fastidio di una cattiva connessione.
 
 
 
 ## Issue guideline
-Se vuoi segnalarci un bug, o suggerire un miglioramento, il modo migliore per farlo è tramite una [issue](https://github.com/aclerici-unimi/unimi-dl/issues/new/choose). Ricordati di scegliere il giusto tag e, se si tratta di un bug (un malfunzionamento) includi un log. Il log è un file generato da unimi-dl che contiene informazioni utili a risolvere il bug. Puoi trovarlo in `$HOME/.local/share/unimi-dl/log.txt` su Linux, `Users\[proprio utente]\AppData\Roaming\unimi-dl\log.txt` su Windows, e `$HOME/Library/'Application Support'/unimi-dl/log.txt` su MacOS.
+Se vuoi segnalarci un bug, o suggerire un miglioramento, il modo migliore per farlo è tramite una [issue](https://github.com/aclerici-unimi/unimi-dl/issues/new/choose). Ricordati di scegliere il giusto tag e, se si tratta di un bug (un malfunzionamento), includi un log. Il log è un file generato da unimi-dl che contiene informazioni utili a risolvere il bug. Puoi trovarlo in `$HOME/.local/share/unimi-dl/log.txt` su Linux, `Users\[proprio utente]\AppData\Roaming\unimi-dl\log.txt` su Windows, e `$HOME/Library/'Application Support'/unimi-dl/log.txt` su MacOS.
 
 
 
@@ -179,11 +181,11 @@ Se vuoi segnalarci un bug, o suggerire un miglioramento, il modo migliore per fa
 
 
 ## Contributing
-Sul progetto [General TODO] si trovano i prossimi obiettivi stabiliti dai mantainer principali. Se hai intenzione di sviluppare una di tali feature, controlla prima che non sia negli "In progress" del progetto e nella discussion [Working on] per assicurarti che non ci stia già lavorando qualcuno. Sia se vuoi implementare uno dei sopracitati obiettivi (specialmente in questo caso), sia se vuoi sviluppare una personale idea, ti preghiamo di notificarlo nella suddetta discussion.
+Sul progetto [General TODO] si trovano i prossimi obiettivi stabiliti dai maintainer principali. Se hai intenzione di sviluppare una di tali feature, controlla prima che non sia negli "In progress" del progetto e nella discussion [Working on] per assicurarti che non ci stia già lavorando qualcuno. Sia se vuoi implementare uno dei sopracitati obiettivi (specialmente in questo caso), sia se vuoi sviluppare una personale idea, ti preghiamo di notificarlo nella suddetta discussion.
 
 Se non hai accesso diretto alla repo, forkala, implementa la tua proposta di modifica in una branch nominata appropriatamente e apri una pull request.
 
-Se sei un mantainer principale (con accesso diretto alla repo), puoi direttamente modificare il project ignorando la discussion.
+Se sei un maintainer principale (con accesso diretto alla repo), puoi direttamente modificare il project ignorando la discussion.
 
 [Working on]: https://github.com/aclerici-unimi/unimi-dl/discussions/categories/working-on
 [General TODO]: https://github.com/aclerici-unimi/unimi-dl/projects/1
