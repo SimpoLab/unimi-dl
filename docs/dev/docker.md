@@ -4,7 +4,7 @@ L'utilizzo di Docker serve per creare un ambiente di sviluppo omogeneo.
 
 ## Inizializzazione
 
-1. Nella root del progetto copiare credentials.json
+1. Nella root del progetto copiare `credentials.json`
 
 ```bash
 cp ~/.local/share/unimi-dl/credentials.json ./
