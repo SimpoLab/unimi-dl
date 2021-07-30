@@ -9,7 +9,8 @@ L'utilizzo di Docker serve per creare un ambiente di sviluppo omogeneo.
 cp ~/.local/share/unimi-dl/credentials.json ./
 ```
 
-2. ```bash
+2. 
+```bash
 docker-compose up
 ```
 
