@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright (C) 2021 Alessandro Clerici Lorenzini and Zhifan Chen.
 #
 # This file is part of unimi-dl.
@@ -18,6 +16,7 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from setuptools import setup
+from __future__ import annotations, with_statement
+from .ariel import Ariel
 
-setup()
+__all__ = ["Ariel"]

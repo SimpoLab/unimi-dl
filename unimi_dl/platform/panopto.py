@@ -17,20 +17,19 @@
 
 
 from __future__ import annotations
+from .platform import Platform
+from .session_manager.unimi import UnimiSessionManager
+from unimi_dl.downloadable import Attachment
+from urllib3 import disable_warnings
+from urllib3.exceptions import InsecureRequestWarning
 import logging
 import re
-
 import requests
-from urllib3 import disable_warnings
 import urllib.parse
-from urllib3.exceptions import InsecureRequestWarning
-
-from .ariel import get_ariel_session
-from .platform import Platform
 
 
 def get_panopto_session(email: str, password: str) -> requests.Session:
-    s = get_ariel_session(email, password)
+    s = UnimiSessionManager.getSession(email, password)
     auth_url = r"https://unimi.cloud.panopto.eu/Panopto/Pages/Auth/Login.aspx?instance=Labonline"
     disable_warnings(InsecureRequestWarning)
     s.get(auth_url, verify=False)
@@ -44,12 +43,25 @@ class Panopto(Platform):
         self.logger.info("Logging in")
         self.session = get_panopto_session(email, password)
 
+    def getAttachments(self, url: str) -> list[Attachment]:
+        attachments = []
+        videos = self.get_manifests(url)
+        for filename in videos.keys():
+            manifest = videos.get(filename)
+            if isinstance(manifest, str):
+                attachments.append(Attachment(
+                    filename, "video", manifest, "", ""))
+        return attachments
+
     def get_manifests(self, url: str) -> dict[str, str]:
         self.logger.info("Getting video page")
         video_page = self.session.get(url).text
 
         iframe_re = re.compile(r"<iframe src=\"(.*?)\"")
-        iframe_url = iframe_re.search(video_page)[1]
+        res = iframe_re.search(video_page)
+        iframe_url = ""
+        if res is not None:
+            iframe_url = res[1]
         self.logger.debug(f"iframe URL: {iframe_url}")
         manifest_page = self.session.get(iframe_url).text
 

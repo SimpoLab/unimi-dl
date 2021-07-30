@@ -16,8 +16,12 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from .getPlatform import getPlatform
-from .ariel import Ariel
+from .ariel import *
 from .panopto import Panopto
+from .platform import Platform, getPlatform
+from unimi_dl.downloadable import Attachment
+from unimi_dl.course import Course
+from .session_manager.unimi import UnimiSessionManager
 
-__all__ = ["ariel", "getPlatform", "panopto", "platform"]
+__all__ = ["Ariel", "Panopto", "Platform", "Attachment", "Course",
+"UnimiSessionManager", "getPlatform"]
