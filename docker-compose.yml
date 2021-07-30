@@ -1,0 +1,9 @@
+version: '3'
+services:
+  unimi_dl:
+    build:
+      context: .
+    volumes:
+      - type: bind
+        source: .
+        target: /app
