@@ -3,6 +3,22 @@
 
 
 
+## v0.3.1 minor release
+Installation bugfixes.
+
+
+### Download
+See [PyPI release page](https://pypi.org/project/unimi-dl/0.3.1)
+
+
+### Release notes
+
+#### Fixed
+- minimum Python version is now 3.8
+
+
+
+
 ## v0.3 Menus
 Major improvements to usability.
 

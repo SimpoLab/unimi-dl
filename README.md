@@ -67,7 +67,7 @@ Nota: con questo metodo è necessario tenere la repo clonata per fare uso del so
 ## Dipendenze
 
 ### Esterne
-- python 3
+- python 3 (>=3.8)
 - ffmpeg
 
 ### Python

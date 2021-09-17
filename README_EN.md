@@ -46,7 +46,7 @@ Note: with this method it is necessary to keep the cloned repo in order to use t
 ## Dependencies
 
 ### External
-- python 3
+- python 3 (>=3.8)
 - ffmpeg
 
 ### Python

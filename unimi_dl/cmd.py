@@ -16,6 +16,7 @@
 # along with unimi-dl.  If not, see <https://www.gnu.org/licenses/>.
 
 
+from __future__ import annotations
 from argparse import ArgumentParser, Namespace
 from datetime import datetime
 from getpass import getpass
