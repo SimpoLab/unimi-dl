@@ -1,29 +1,7 @@
-<div align="center">
-  <h1>unimi-dl</h1>
-</div>
+# unimi-dl
+Italiano | [English](README_EN.md)
 
 Script in Python 3 per scaricare videolezioni dai portali usati da Unimi.
-
-[English](README_EN.md)
-
-
-
-## What's new - v0.3 Menus
-Major improvements to usability.
-
-### Release notes
-
-#### Added
-- Interactive menus:
-	- The videos to download are now interactively chosen from a list, unless the `-a` option is specified. This behavior doesn't apply on Panopto since every URL corresponds to one video.
-	- Cleanup downloaded mode (`--cleanup-downloaded` option) lets the user choose what videos not to consider downloaded anymore (transparent API to `downloaded.json`)
-	- Wipe credentials mode (`--wipe-credentials` option) lets the user delete their saved credentials
-- Add to downloaded mode (`--add-to-downloaded-only` option) lets the user add the selected videos to the downloaded list without actually downloading them (differs from the `--simulate` option in that the latter doesn't add the videos to the list).
-- `-a` option lets the user download all videos which were not previously downloaded (the previous default behavior)
-
-#### Changed
-- The default behavior for downloading is now the interactive choice. For the previously default behavior use `-a`
-- IMPORTANT: the downloaded list now stores both the manifests and the video titles. The new format is not compatible with the old one, therefore you might have to delete `downloaded.json` (it resides in the same directory specified for `credentials.json` in `unimi-dl --help`). In this case you may find useful using `--add-to-downloaded-only` for re-adding previously downloaded videos.
 
 
 

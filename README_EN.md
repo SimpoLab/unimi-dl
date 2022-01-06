@@ -1,10 +1,9 @@
-<div align="center">
-  <h1>unimi-dl</h1>
-</div>
+# unimi-dl
+[Italiano](README.md) | English
 
 Python 3 script for downloading video lessons from the portals used by Unimi.
 
-[English](README_EN.md)
+
 
 
 ## Quickstart
