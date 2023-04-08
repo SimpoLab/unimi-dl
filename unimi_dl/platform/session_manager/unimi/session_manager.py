@@ -16,12 +16,9 @@ class UnimiSessionManager:
         """
         if UnimiSessionManager.session == None:
             UnimiSessionManager.session = requests.Session()
-            login_url = 'https://elearning.unimi.it/authentication/skin/portaleariel/login.aspx?url=https://ariel.unimi.it/'
-            payload = {
-                'hdnSilent': 'true',
-                'tbLogin': email,
-                'tbPassword': password
-            }
+            login_url = "https://elearning.unimi.it/authentication/skin/portaleariel/login.aspx?url=https://ariel.unimi.it/"
+            payload = {"hdnSilent": "true",
+                       "tbLogin": email, "tbPassword": password}
             response = UnimiSessionManager.session.post(
                 url=login_url, data=payload)
             response.raise_for_status()

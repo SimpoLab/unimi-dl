@@ -7,7 +7,14 @@ logger = logging.getLogger(__name__)
 
 
 class Attachment:
-    def __init__(self, name: str, filetype: str, url: str, section_name: str, description: str = "") -> None:
+    def __init__(
+        self,
+        name: str,
+        filetype: str,
+        url: str,
+        section_name: str,
+        description: str = "",
+    ) -> None:
         self.section_name = section_name
         sane_name = utils.sanitize(name)
         self.name = sane_name
@@ -20,10 +27,12 @@ class Attachment:
             self._download = utils.download_by_requests
         else:
             raise NotImplementedError(
-                f"{self.filetype} filetype download not supported")
+                f"{self.filetype} filetype download not supported"
+            )
 
     def download(self, path_prefix: str) -> bool:
         import os
+
         path = os.path.join(path_prefix, self.name)
         msg = f"Downloading '{path}'"
         logger.info(msg)

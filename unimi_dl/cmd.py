@@ -36,36 +36,72 @@ import sys
 
 
 def get_args() -> Namespace:
-    parser = ArgumentParser(
-        description=f"Unimi material downloader v. {udlv}")
-    parser.add_argument("-u", "--url", metavar="url", type=str,
-                        help="URL of the video(s) to download")
-    parser.add_argument("-p", "--platform", metavar="platform",
-                        type=str, default="ariel", choices=unimi_dl.AVAILABLE_PLATFORMS,
-                        help="platform to download the video(s) from (default: all)")
-    parser.add_argument("-s", "--save", action="store_true",
-                        help=f"saves credentials (unencrypted) in {unimi_dl.CREDENTIALS}")
-    parser.add_argument("--ask", action="store_true",
-                        help=f"asks credentials even if stored")
-    parser.add_argument("-c", "--credentials", metavar="PATH",
-                        type=str, default=unimi_dl.CREDENTIALS,
-                        help="path of the credentials json to be used for logging into the platform")
-    parser.add_argument("-o", "--output", metavar="PATH",
-                        type=str, default=os.getcwd(), help="directory to download the video(s) into")
+    parser = ArgumentParser(description=f"Unimi material downloader v. {udlv}")
+    parser.add_argument(
+        "-u", "--url", metavar="url", type=str, help="URL of the video(s) to download"
+    )
+    parser.add_argument(
+        "-p",
+        "--platform",
+        metavar="platform",
+        type=str,
+        default="ariel",
+        choices=unimi_dl.AVAILABLE_PLATFORMS,
+        help="platform to download the video(s) from (default: all)",
+    )
+    parser.add_argument(
+        "-s",
+        "--save",
+        action="store_true",
+        help=f"saves credentials (unencrypted) in {unimi_dl.CREDENTIALS}",
+    )
+    parser.add_argument(
+        "--ask", action="store_true", help="asks credentials even if stored"
+    )
+    parser.add_argument(
+        "-c",
+        "--credentials",
+        metavar="PATH",
+        type=str,
+        default=unimi_dl.CREDENTIALS,
+        help="path of the credentials json to be used for logging into the platform",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        metavar="PATH",
+        type=str,
+        default=os.getcwd(),
+        help="directory to download the video(s) into",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
-    parser.add_argument("-a", "--all", action="store_true",
-                        help="download all videos not already present")
-    parser.add_argument('--version', action='version',
+    parser.add_argument(
+        "-a",
+        "--all",
+        action="store_true",
+        help="download all videos not already present",
+    )
+    parser.add_argument("--version", action="version",
                         version=f"%(prog)s {udlv}")
     modes = parser.add_argument_group("other modes")
-    modes.add_argument("--simulate", action="store_true",
-                       help="retrieve video names and manifests, but don't download anything nor update the downloaded list")
-    modes.add_argument("--add-to-downloaded-only",
-                       action="store_true", help="retrieve video names and manifests and only update the downloaded list (no download)")
-    modes.add_argument("--cleanup-downloaded", action="store_true",
-                       help="interactively select what videos to clean from the downloaded list")
-    modes.add_argument("--wipe-credentials",
-                       action="store_true", help="delete stored credentials")
+    modes.add_argument(
+        "--simulate",
+        action="store_true",
+        help="retrieve video names and manifests, but don't download anything nor update the downloaded list",
+    )
+    modes.add_argument(
+        "--add-to-downloaded-only",
+        action="store_true",
+        help="retrieve video names and manifests and only update the downloaded list (no download)",
+    )
+    modes.add_argument(
+        "--cleanup-downloaded",
+        action="store_true",
+        help="interactively select what videos to clean from the downloaded list",
+    )
+    modes.add_argument(
+        "--wipe-credentials", action="store_true", help="delete stored credentials"
+    )
 
     opts = parser.parse_args()
     return opts
@@ -80,8 +116,7 @@ def log_setup(verbose: bool) -> None:
     if verbose:
         logging.getLogger("youtube-dl").setLevel(logging.INFO)
         stdout_handler.setLevel(logging.INFO)
-        stdout_handler.setFormatter(
-            logging.Formatter("%(message)s"))
+        stdout_handler.setFormatter(logging.Formatter("%(message)s"))
     else:
         stdout_handler.setLevel(logging.WARNING)
         stdout_handler.setFormatter(
@@ -106,7 +141,8 @@ def main():
 
     main_logger.debug(
         f"=============job start at {datetime.now()}=============")
-    main_logger.debug(f"""Detected system info:
+    main_logger.debug(
+        f"""Detected system info:
     unimi-dl: {udlv}
     OS: {pt.platform()}
     Release: {pt.release()}
@@ -115,16 +151,19 @@ def main():
     Python: {sys.version}
     Requests: {reqv}
     YoutubeDL: {ytdv}
-    Downloaded file: {unimi_dl.DOWNLOADED}""")
+    Downloaded file: {unimi_dl.DOWNLOADED}"""
+    )
 
-    main_logger.debug(f"""MODE: {"SIMULATE" if opts.simulate else "ADD TO DOWNLOADED ONLY" if opts.add_to_downloaded_only else "DOWNLOAD"}
+    main_logger.debug(
+        f"""MODE: {"SIMULATE" if opts.simulate else "ADD TO DOWNLOADED ONLY" if opts.add_to_downloaded_only else "DOWNLOAD"}
     Request info:
     Platform: {opts.platform}
     Save: {opts.save}
     Ask: {opts.ask}
     All: {opts.all}
     Credentials: {opts.credentials}
-    Output: {opts.output}""")
+    Output: {opts.output}"""
+    )
 
     if opts.url is not None:
         opts.url = opts.url.replace("\\", "")  # sanitize url
@@ -149,15 +188,19 @@ def main():
     if opts.cleanup_downloaded:
         main_logger.debug("MODE: DOWNLOADED CLEANUP")
         downloaded = download_manager.getDownloadFrom(platform)
-        to_delete = multi_select(downloaded, entries_text=downloaded,
-                                 selection_text=f"\nVideos to remove from the '{platform}' downloaded list: ")
+        to_delete = multi_select(
+            downloaded,
+            entries_text=downloaded,
+            selection_text=f"\nVideos to remove from the '{platform}' downloaded list: ",
+        )
         download_manager.wipeDownloaded(platform, to_delete)
 
     elif opts.wipe_credentials:
         main_logger.debug("MODE: WIPE CREDENTIALS")
         main_logger.debug("Prompting user")
         choice = input(
-            "Are you sure you want to delete stored credentials? [y/N]: ").lower()
+            "Are you sure you want to delete stored credentials? [y/N]: "
+        ).lower()
         if choice == "y" or choice == "yes":
             credentials_manager.wipeCredentials()
             main_logger.info("Credentials file deleted")
@@ -171,12 +214,14 @@ def main():
         if isinstance(p, Ariel):
             courses = p.getCourses()
             selected_courses = multi_select(
-                courses, courses, "Scegli il corso: ")  # type: list[Course]
+                courses, courses, "Scegli il corso: "
+            )  # type: list[Course]
 
             for course in selected_courses:
                 entries = course.getSections()
                 selected_sections = multi_select(
-                    entries, entries, "Scegli le sezioni: ")  # type: list[Section]
+                    entries, entries, "Scegli le sezioni: "
+                )  # type: list[Section]
                 for section in selected_sections:
                     to_download = to_download + show(section)
         elif platform == "panopto" and opts.url is not None:
@@ -188,15 +233,17 @@ def main():
             exit(1)
 
         if not opts.simulate:
+
             def download(choice: Attachment):
                 download_manager.doDownload(
                     attachment=choice,
                     dry_run=opts.add_to_downloaded_only,
                     path=opts.output,
-                    platform=platform
+                    platform=platform,
                 )
 
             import concurrent.futures
+
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                 executor.map(download, to_download)
 
@@ -206,8 +253,9 @@ def main():
         f"=============job end at {datetime.now()}=============\n")
 
 
-def show(section: Section = None,
-         additional_attachments: list[Attachment] = []) -> list[Attachment]:
+def show(
+    section: Section = None, additional_attachments: list[Attachment] = []
+) -> list[Attachment]:
     sections = []
     result = []
     if section is not None:
@@ -216,7 +264,8 @@ def show(section: Section = None,
     selected_choices = multi_select(
         entries=choices,
         entries_text=choices,
-        selection_text="Scegli un file o una sezione ")
+        selection_text="Scegli un file o una sezione ",
+    )
 
     for choice in selected_choices:
         if isinstance(choice, Section):

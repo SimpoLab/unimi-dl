@@ -10,7 +10,8 @@ class Course:
     `section`: a dictionary containing the name of the section i.e. "Materiali didattici" or "Videoregistrazioni"
         and a tree-like representation of the course making it more easily browseable or retrieve files
 
-    It allows you to retrieve all the attachments of the said course (be it a video or pdfs)"""
+    It allows you to retrieve all the attachments of the said course (be it a video or pdfs)
+    """
 
     def __init__(self, name: str, teachers: list[str], url: str, edition: str) -> None:
         self.name = name
@@ -29,7 +30,6 @@ class Course:
         return f"""Corso di '{self.name}'"""
 
     def __str__(self) -> str:
-        return \
-            f"""Corso di '{self.name}' di 
+        return f"""Corso di '{self.name}' di 
         {self.teachers}
         edizione '{self.edition}'"""

@@ -66,8 +66,9 @@ class Panopto(Platform):
         manifest_page = self.session.get(iframe_url).text
 
         self.logger.info("Collecting manifests")
-        manifest = re.compile(
-            r"\"VideoUrl\":\"(https:.*?\.m3u8)\"").search(manifest_page)
+        manifest = re.compile(r"\"VideoUrl\":\"(https:.*?\.m3u8)\"").search(
+            manifest_page
+        )
         if not manifest:
             self.logger.info("No manifest found")
             return {}
@@ -76,7 +77,10 @@ class Panopto(Platform):
         filename_match = re.compile(
             r"<title>(.*?)</title>").search(manifest_page)
 
-        filename = filename_match[1] if filename_match and filename_match[1] else urllib.parse.urlparse(url)[
-            1]
+        filename = (
+            filename_match[1]
+            if filename_match and filename_match[1]
+            else urllib.parse.urlparse(url)[1]
+        )
 
         return {filename: manifest[1].replace("\\", "")}

@@ -4,6 +4,7 @@ import unittest
 from ..platform import Ariel
 import os
 
+
 class TestUtility(unittest.TestCase):
     def setUp(self) -> None:
         self.username = os.getenv("USERNAME")
@@ -25,13 +26,17 @@ class TestUtility(unittest.TestCase):
 
     def test_credential_manager(self):
         from unimi_dl.utility.credentials_manager import CredentialsManager
-        credentials_manager = CredentialsManager("~/.local/share/unimi-dl/credentials.json")
+
+        credentials_manager = CredentialsManager(
+            "~/.local/share/unimi-dl/credentials.json"
+        )
         credentials = credentials_manager.getCredentials()
-        assert(credentials.email == self.username)
-        assert(credentials.password == self.password)
+        assert credentials.email == self.username
+        assert credentials.password == self.password
 
     def test_download_manager(self):
         from unimi_dl.utility.download_manager import DownloadManager
+
         download_manager = DownloadManager("./test/downloaded.json")
 
         ariel = self.ariel
@@ -41,21 +46,21 @@ class TestUtility(unittest.TestCase):
         document = None
         for section in course.getSections():
             if video is not None and document is not None:
-                download_manager.doDownload("ariel", document, str(self.path_test))
-                assert(Path(str(self.path_test), document.name).exists())
+                download_manager.doDownload(
+                    "ariel", document, str(self.path_test))
+                assert Path(str(self.path_test), document.name).exists()
 
-                #download_manager.doDownload("ariel", video, str(self.path_test))
-                #assert(Path(str(self.path_test), video.name).exists())
+                # download_manager.doDownload("ariel", video, str(self.path_test))
+                # assert(Path(str(self.path_test), video.name).exists())
 
                 download_manager.save()
                 downloaded_json = read_from_json(str(download_manager.path))
-                #assert(video.url in downloaded_json["ariel"])
-                assert(document.url in downloaded_json["ariel"])
+                # assert(video.url in downloaded_json["ariel"])
+                assert document.url in downloaded_json["ariel"]
                 break
 
             attachments = section.getAttachments()
             for attachment in attachments:
-                
                 if video is not None and document is not None:
                     break
 
@@ -68,9 +73,11 @@ class TestUtility(unittest.TestCase):
 
 def read_from_json(path: str):
     from json import dumps as json_dumps, load as json_load
-    with(open(path, "r") as json_file):
+
+    with open(path, "r") as json_file:
         dict = json_load(json_file)
         return dict
-    
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     unittest.main()

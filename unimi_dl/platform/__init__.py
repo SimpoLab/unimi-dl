@@ -23,5 +23,12 @@ from unimi_dl.downloadable import Attachment
 from unimi_dl.course import Course
 from .session_manager.unimi import UnimiSessionManager
 
-__all__ = ["Ariel", "Panopto", "Platform", "Attachment", "Course",
-"UnimiSessionManager", "getPlatform"]
+__all__ = [
+    "Ariel",
+    "Panopto",
+    "Platform",
+    "Attachment",
+    "Course",
+    "UnimiSessionManager",
+    "getPlatform",
+]

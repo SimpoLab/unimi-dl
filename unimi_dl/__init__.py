@@ -25,13 +25,14 @@ from pathlib import Path
 import sys
 import unimi_dl.cmd as cmd
 
+
 def get_data_dir() -> Path:
-    """ Returns a parent directory path
+    """Returns a parent directory path
     where persistent application data can be stored.
 
     # linux: ~/.local/share
     # macOS: ~/Library/Application Support
-    # windows: C:/Users/<USER>/AppData/Roaming """
+    # windows: C:/Users/<USER>/AppData/Roaming"""
 
     home = Path.home()
 
@@ -44,10 +45,12 @@ def get_data_dir() -> Path:
     else:
         raise NotImplementedError
 
+
 LOCAL = join(get_data_dir(), "unimi-dl")
 CREDENTIALS = join(LOCAL, "credentials.json")
 DOWNLOADED = join(LOCAL, "downloaded.json")
 LOG = join(LOCAL, "log.txt")
 AVAILABLE_PLATFORMS = ["ariel", "panopto"]
 
-__all__ = ["cmd", "LOCAL", "CREDENTIALS", "DOWNLOADED", "LOG", "AVAILABLE_PLATFORMS"]
+__all__ = ["cmd", "LOCAL", "CREDENTIALS",
+           "DOWNLOADED", "LOG", "AVAILABLE_PLATFORMS"]

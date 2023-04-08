@@ -12,9 +12,10 @@ import unimi_dl.platform.ariel.ariel_course as ariel_course
 from unimi_dl.platform.session_manager.unimi import UnimiSessionManager
 from unimi_dl.downloadable import Attachment
 
-API = "/v5/frm3/" #API version of ariel
-OFFERTA_FORMATIVA = "https://ariel.unimi.it/Offerta/myof" #offerta formativa
-CONTENUTI = "ThreadList.aspx?name=contenuti" #contents endpoint of a course
+API = "/v5/frm3/"  # API version of ariel
+OFFERTA_FORMATIVA = "https://ariel.unimi.it/Offerta/myof"  # offerta formativa
+CONTENUTI = "ThreadList.aspx?name=contenuti"  # contents endpoint of a course
+
 
 def findAllContentTables(html: str) -> list[Tag]:
     result = []
@@ -25,13 +26,15 @@ def findAllContentTables(html: str) -> list[Tag]:
             result.append(tbody)
     return result
 
+
 def findAllRows(tbody: Tag) -> list[Tag]:
     result = []
-    trs = tbody.find_all("tr", recursive=False)#, class_="sticky")
+    trs = tbody.find_all("tr", recursive=False)  # , class_="sticky")
     for tr in trs:
         if isinstance(tr, Tag):
             result.append(tr)
     return result
+
 
 def findAllAttachments(tr: Tag, base_url: str) -> list[Attachment]:
     attachments = []
@@ -39,6 +42,7 @@ def findAllAttachments(tr: Tag, base_url: str) -> list[Attachment]:
     documents = findAllDocuments(tr, base_url)
     attachments = attachments + videos + documents
     return attachments
+
 
 def findAllVideos(tr: Tag) -> list[Attachment]:
     """
@@ -55,29 +59,32 @@ def findAllVideos(tr: Tag) -> list[Attachment]:
         if isinstance(video, Tag):
             url = findVideoUrl(video)
 
-        #extracts the video name from the `manifest.m3u8`
+        # extracts the video name from the `manifest.m3u8`
         name = url.replace("/manifest.m3u8", "")
         name = name.split("mp4:")[-1]
         name = name.split("/")[-1]
 
         section_name = ""
         description = findPostDescription(tr)
-        attachments.append(Attachment(
-            name=name,
-            url=url,
-            section_name=section_name,
-            description=description,
-            filetype="video"
-        ))
+        attachments.append(
+            Attachment(
+                name=name,
+                url=url,
+                section_name=section_name,
+                description=description,
+                filetype="video",
+            )
+        )
 
     return attachments
+
 
 def findVideoUrl(video: Tag) -> str:
     url = ""
     source = video.find("source")
     if source is None or isinstance(source, NavigableString):
         return url
-    url = source.get("src") 
+    url = source.get("src")
     if isinstance(url, list):
         raise Exception("Video url shouldn't be a list")
 
@@ -86,37 +93,43 @@ def findVideoUrl(video: Tag) -> str:
 
     return url
 
+
 def findAllDocuments(tr: Tag, base_url: str) -> list[Attachment]:
     attachments = []
     a_tags = tr.find_all("a", class_=["filename"])
     if a_tags:
         pass
-#        print(tr)
-#        input()
-#        print(a_tags)
-#        input()
+    #        print(tr)
+    #        input()
+    #        print(a_tags)
+    #        input()
     for a in a_tags:
         if not isinstance(a, Tag):
             continue
 
         name = findDocumentName(a)
-        url = base_url + API + getTagHref(a)[8:] #excluding ../frm3 from the url
+        # excluding ../frm3 from the url
+        url = base_url + API + getTagHref(a)[8:]
         section_name = ""
         description = findPostDescription(tr)
-        attachments.append(Attachment(
-            name=name,
-            url=url,
-            section_name=section_name,
-            description=description,
-            filetype="document"
-        ))
+        attachments.append(
+            Attachment(
+                name=name,
+                url=url,
+                section_name=section_name,
+                description=description,
+                filetype="document",
+            )
+        )
 
     return attachments
+
 
 def findDocumentName(a: Tag) -> str:
     name = a.get_text()
 
     return name
+
 
 def getTagHref(tag: Tag) -> str:
     href = tag.get("href")
@@ -125,6 +138,7 @@ def getTagHref(tag: Tag) -> str:
         href = ""
 
     return href
+
 
 def findPostDescription(tr: Tag) -> str:
     description = ""
@@ -135,21 +149,24 @@ def findPostDescription(tr: Tag) -> str:
 
     return description
 
+
 def findMessageTitle(tr: Tag) -> str:
     title = ""
     h2 = tr.find("h2", class_=["arielTitle", "arielStick"])
     if isinstance(h2, Tag):
         spans = h2.select("span")
-        for span in spans: #title should be the last `span` tag
+        for span in spans:  # title should be the last `span` tag
             if isinstance(span, Tag):
                 title = span.get_text()
     return title
+
 
 def getPageHtml(url: str) -> str:
     session = UnimiSessionManager.getSession()
     r = session.get(url)
     r.raise_for_status()
     return r.text
+
 
 def findAllCourses() -> list[Tuple[str, list[str], str, str]]:
     """
@@ -159,17 +176,18 @@ def findAllCourses() -> list[Tuple[str, list[str], str, str]]:
     courses = []
     html = getPageHtml(OFFERTA_FORMATIVA)
 
-    page = BeautifulSoup(html, 'html.parser')
+    page = BeautifulSoup(html, "html.parser")
     courses_table = page.find("table", class_="table")
     if isinstance(courses_table, Tag):
         projects = courses_table.find_all("div", class_="ariel-project")
         for project in projects:
             if isinstance(project, Tag):
                 courses.append(createCourse(project))
-    else: #TODO: custom Exception
+    else:  # TODO: custom Exception
         raise Exception("Error while parsing courses. Maybe Tag changed?")
 
     return courses
+
 
 def createCourse(div: Tag) -> Tuple[str, list[str], str, str]:
     """
@@ -178,16 +196,18 @@ def createCourse(div: Tag) -> Tuple[str, list[str], str, str]:
 
     Returns a `name` of course, list of `teacher`, `url` of the course and `edition` of the course
     """
-    if "ariel-project" not in div["class"]: #TODO: customize exception
-        raise Exception("div class doesn't match 'ariel-project'. Maybe changed?")
+    if "ariel-project" not in div["class"]:  # TODO: customize exception
+        raise Exception(
+            "div class doesn't match 'ariel-project'. Maybe changed?")
 
     teachers = findAllTeachersName(div)
     name, url = findCourseNameAndUrl(div)
     edition = findCourseEdition(div)
     return name, teachers, url, edition
 
+
 def findAllTeachersName(div: Tag) -> list[str]:
-    regexp = re.compile("/offerta/teacher/*") #find teachers' name
+    regexp = re.compile("/offerta/teacher/*")  # find teachers' name
     els = div.find_all("a", href=regexp)
     teachers = []
     for el in els:
@@ -195,8 +215,9 @@ def findAllTeachersName(div: Tag) -> list[str]:
             teachers.append(el.get_text())
     return teachers
 
+
 def findCourseNameAndUrl(div: Tag) -> Tuple[str, str]:
-    regexp = re.compile("https://*") #find course's name and url
+    regexp = re.compile("https://*")  # find course's name and url
     el = div.find("a", href=regexp)
     if isinstance(el, Tag):
         name = el.get_text()
@@ -205,10 +226,13 @@ def findCourseNameAndUrl(div: Tag) -> Tuple[str, str]:
             raise Exception("href shouldn't be a list")
         return name, href
     else:
-        raise Exception("Error on finding course's name and url") #TODO: customize exception
+        raise Exception(
+            "Error on finding course's name and url"
+        )  # TODO: customize exception
+
 
 def findCourseEdition(div: Tag):
-    regexp = re.compile("tag bg-F") #find course's edition
+    regexp = re.compile("tag bg-F")  # find course's edition
     el = div.find("span", class_=regexp)
     edition = ""
 
@@ -217,6 +241,7 @@ def findCourseEdition(div: Tag):
             edition = el.parent.get_text()
 
     return edition
+
 
 def findAllArielRoomsList(html: str) -> list[Tag]:
     """
@@ -247,6 +272,7 @@ def findAllArielRoomsList(html: str) -> list[Tag]:
             rooms.append(tbody)
     return rooms
 
+
 def findAllArielThreadList(html: str) -> list[Tag]:
     """
     Finds all the `tbody` under "Archivio file"
@@ -259,13 +285,14 @@ def findAllArielThreadList(html: str) -> list[Tag]:
             rooms.append(tbody)
     return rooms
 
+
 def findAllSections(base_url: str) -> list[Section]:
     """
     Finds all the sections of a given course specified in `base_url`
     """
     sections = []
     url = base_url + API + CONTENUTI
-    html =  getPageHtml(url)
+    html = getPageHtml(url)
     tables = findAllArielRoomsList(html)
 
     if tables == None:
@@ -285,11 +312,12 @@ def findAllSections(base_url: str) -> list[Section]:
             section_url = base_url + API + href
             name = a.get_text()
 
-            sections.append(ariel_course.ArielSection(
-                name=name,
-                url=section_url,
-                base_url=base_url))
+            sections.append(
+                ariel_course.ArielSection(
+                    name=name, url=section_url, base_url=base_url)
+            )
     return sections
+
 
 def findAllATags(tr: Tag) -> list[Tag]:
     result = []
@@ -299,6 +327,7 @@ def findAllATags(tr: Tag) -> list[Tag]:
             result.append(a)
 
     return result
+
 
 def findTableType(tbody: Tag) -> str:
     """

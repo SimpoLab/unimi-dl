@@ -41,16 +41,17 @@ class Platform:
         raise NotImplementedError
 
     def get_manifests(self, url: str) -> dict[str, str]:
-        """ Returns a list of couples, each one containing a filename and relative
-        manifest, fetched from {url} """
+        """Returns a list of couples, each one containing a filename and relative
+        manifest, fetched from {url}"""
         raise NotImplementedError
 
+
 def getPlatform(email: str, password: str, platform: str) -> Platform:
-    """ Factory method to create the appropriate Platform instance. """
+    """Factory method to create the appropriate Platform instance."""
     from unimi_dl.platform import Ariel, Panopto
 
-    if platform == 'ariel':
+    if platform == "ariel":
         return Ariel(email, password)
-    if platform == 'panopto':
+    if platform == "panopto":
         return Panopto(email, password)
     raise NotImplementedError(f"platform '{platform}' is not supported")
