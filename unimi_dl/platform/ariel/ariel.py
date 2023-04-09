@@ -1,5 +1,7 @@
 import logging
 import re
+
+from bs4 import Tag
 from unimi_dl.downloadable import Attachment
 from unimi_dl.course import Course
 import urllib.parse
@@ -35,7 +37,25 @@ class Ariel(Platform):
         return self.courses.copy()  # it's a shallow copy, need a deep copy maybe?
 
     def getAttachments(self, url: str) -> list[Attachment]:
-        return super().getAttachments(url)
+        parsed_url = urllib.parse.urlparse(url)
+        attachments_url = parsed_url.geturl()
+        html = utils.getPageHtml(attachments_url)
+        threads = utils.findAllArielThreadList(html)  # get threads
+        # create base url with only scheme and netloc
+        base_url = urllib.parse.urlunparse(
+            (parsed_url.scheme, parsed_url.netloc, '', '', '', ''))
+        attachments = []
+        for thread in threads:
+            if not isinstance(thread, Tag):
+                pass
+
+            trs = utils.findAllRows(thread)
+            for tr in trs:
+                attachments = attachments + utils.findAllAttachments(
+                    tr, base_url
+                )
+
+        return attachments
 
     def get_manifests(self, url: str) -> dict[str, str]:  # TODO: remove this
         self.logger.info("Getting video page")

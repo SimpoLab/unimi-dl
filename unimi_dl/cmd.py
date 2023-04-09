@@ -212,18 +212,21 @@ def main():
 
         to_download = []
         if isinstance(p, Ariel):
-            courses = p.getCourses()
-            selected_courses = multi_select(
-                courses, courses, "Scegli il corso: "
-            )  # type: list[Course]
+            if opts.url is None:
+                courses = p.getCourses()
+                selected_courses = multi_select(
+                    courses, courses, "Scegli il corso: "
+                )  # type: list[Course]
 
-            for course in selected_courses:
-                entries = course.getSections()
-                selected_sections = multi_select(
-                    entries, entries, "Scegli le sezioni: "
-                )  # type: list[Section]
-                for section in selected_sections:
-                    to_download = to_download + show(section)
+                for course in selected_courses:
+                    entries = course.getSections()
+                    selected_sections = multi_select(
+                        entries, entries, "Scegli le sezioni: "
+                    )  # type: list[Section]
+                    for section in selected_sections:
+                        to_download = to_download + show(section)
+            else:
+                to_download = p.getAttachments(opts.url)
         elif platform == "panopto" and opts.url is not None:
             attachments = p.getAttachments(opts.url)
             to_download = to_download + \

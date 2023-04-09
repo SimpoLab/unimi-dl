@@ -51,7 +51,7 @@ class Attachment:
         return result
 
     def __repr__(self) -> str:
-        return f"{self.name}"
+        return self.__str__()
 
     def __str__(self) -> str:
-        return f"{self.name}"
+        return f"{self.name}, {self.url}, {self.filetype}"
