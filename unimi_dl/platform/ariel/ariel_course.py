@@ -55,6 +55,7 @@ class ArielSection(Section):
         return self.attachments.copy()
 
     def getSubsections(self) -> list[Section]:
+        # not sure which edge case was handling this
         if not self.has_subsections:
             html = utils.getPageHtml(self.url)
             rooms = utils.findAllArielRoomsList(html)  # get subsections

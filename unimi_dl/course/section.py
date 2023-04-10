@@ -1,18 +1,18 @@
 from __future__ import annotations
+from typing import Optional
 
 from urllib.parse import urlparse
-from typing import Optional
 from unimi_dl.downloadable import Attachment
 
 
 class Section:
-    def __init__(self, name: str, url: str, base_url: str, parent_section=None) -> None:
-        self.parent_section = parent_section  # type: Optional[Section]
+    attachments: list[Attachment] = []
+    subsections: list[Section] = []
+
+    def __init__(self, name: str, url: str, base_url: str) -> None:
         self.name = name
         self.url = urlparse(url).geturl()
         self.base_url = urlparse(base_url).geturl()
-        self.attachments = []  # type: list[Attachment]
-        self.subsections = []  # type: list[Section]
 
     def getAllAttachments(self) -> list[Attachment]:
         """
