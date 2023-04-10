@@ -20,11 +20,11 @@ class Course:
             self,
             name: str,
             teachers: list[str],
-            base_url: str,
+            url: str,
             edition: str):
         self.name = name
         self.teachers = teachers
-        self.base_url = base_url
+        self.url = url
         self.edition = edition
         self.sections = {}
 

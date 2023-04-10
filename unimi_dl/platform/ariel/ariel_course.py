@@ -89,7 +89,7 @@ class ArielCourse(Course):
         super().__init__(
             name=name,
             teachers=teachers,
-            base_url=parsed_url.geturl(),
+            url=parsed_url.geturl(),
             edition=edition)
         self.sections = self.__retrieveSections()
 
@@ -102,7 +102,7 @@ class ArielCourse(Course):
         It looks up `CONTENUTI` endpoint and parses the html page
         """
         sections: list[ArielSection] = []
-        contents_url = self.base_url + utils.API + utils.CONTENUTI
+        contents_url = self.url + utils.API + utils.CONTENUTI
         html = utils.getPageHtml(contents_url)
         page = BeautifulSoup(html, "html.parser")
         a_tags = page.select("table > tbody > tr > td > h2 > span > a")
@@ -111,6 +111,6 @@ class ArielCourse(Course):
                 ArielSection(
                     name=a_tag.get_text(),
                     url=a_tag.attrs['href'],
-                    base_url=self.base_url)
+                    base_url=self.url)
             )
         return sections
