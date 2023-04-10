@@ -1,3 +1,4 @@
+from typing import Optional
 import urllib.parse
 from bs4 import BeautifulSoup
 from bs4.element import Tag
@@ -53,21 +54,24 @@ class ArielSection(Section):
 
     def getSubsections(self) -> list[Section]:
         # not sure which edge case was handling this
-        if not self.has_subsections:
-            html = utils.getPageHtml(self.url)
-            rooms = utils.findAllArielRoomsList(html)  # get subsections
+        html = utils.getPageHtml(self.url)
+        print('html', html)
+        self.sections = parseSections(html, self.url)
+        # if not self.has_subsections:
+        #     html = utils.getPageHtml(self.url)
+        #     rooms = utils.findAllArielRoomsList(html)  # get subsections
 
-            for thread in rooms:
-                if isinstance(thread, Tag):
-                    trs = utils.findAllRows(thread)
-                    for tr in trs:
-                        a_tags = utils.findAllATags(tr)
-                        for a in a_tags:
-                            href = a.get("href")
-                            if isinstance(href, str):
-                                self.addSection(name=a.get_text(), url=href)
+        #     for thread in rooms:
+        #         if isinstance(thread, Tag):
+        #             trs = utils.findAllRows(thread)
+        #             for tr in trs:
+        #                 a_tags = utils.findAllATags(tr)
+        #                 for a in a_tags:
+        #                     href = a.get("href")
+        #                     if isinstance(href, str):
+        #                         self.addSection(name=a.get_text(), url=href)
 
-            self.has_subsections = True
+        #     self.has_subsections = True
         return self.subsections
 
     def addSection(self, name: str, url: str):
@@ -82,15 +86,18 @@ class ArielSection(Section):
 class ArielCourse(Course):
     def __init__(self, name: str, teachers: list[str], url: str, edition: str) -> None:
         parsed_url = urllib.parse.urlparse(url)
+        self.__sections: Optional[list[ArielSection]] = None
         super().__init__(
             name=name,
             teachers=teachers,
             url=parsed_url.geturl(),
             edition=edition)
-        self.sections = self.__retrieveSections()
 
     def getSections(self) -> list[ArielSection]:
-        return self.sections
+        test: list[ArielSection] | None = None
+        if self.__sections is None:
+            self.__sections = self.__retrieveSections()
+        return self.__sections
 
     def __retrieveSections(self):
         """
@@ -98,20 +105,36 @@ class ArielCourse(Course):
         It looks up `CONTENUTI` endpoint and parses the html page
         """
         sections: list[ArielSection] = []
-        contents_url = self.url + utils.API + utils.CONTENUTI
-        html = utils.getPageHtml(contents_url)
-        page = BeautifulSoup(html, "html.parser")
-        a_tags = page.select("table > tbody > tr > td > h2 > span > a")
         parsed_url = urllib.parse.urlparse(self.url)
+        if parsed_url.netloc == "labonline.ctu.unimi.it":
+            return sections
         api_base_url = urllib.parse.urlunparse(
             (parsed_url.scheme, parsed_url.netloc, utils.API, '', '', ''))
-        for a_tag in a_tags:
-            href = a_tag.attrs['href']
-            section_url = urllib.parse.urljoin(api_base_url, href)
-            sections.append(
-                ArielSection(
-                    name=a_tag.get_text(),
-                    url=section_url,
-                )
-            )
+        contents_url = urllib.parse.urljoin(
+            api_base_url, utils.CONTENUTI)
+        html = utils.getPageHtml(contents_url)
+        print('html', html)
+        sections = parseSections(html, contents_url)
         return sections
+
+
+def parseSections(html: str, url: str) -> list[ArielSection]:
+    """
+    Parse the html page of the course and returns a list of ArielSection
+    """
+    sections: list[ArielSection] = []
+    parsed_url = urllib.parse.urlparse(url)
+    api_base_url = urllib.parse.urlunparse(
+        (parsed_url.scheme, parsed_url.netloc, utils.API, '', '', ''))
+    page = BeautifulSoup(html, "html.parser")
+    a_tags = page.select("tbody.arielRoomList > tr > td > h2 > span > a")
+    for a_tag in a_tags:
+        href = a_tag.attrs['href']
+        section_url = urllib.parse.urljoin(api_base_url, href)
+        sections.append(
+            ArielSection(
+                name=a_tag.get_text(),
+                url=section_url,
+            )
+        )
+    return sections
