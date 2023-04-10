@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 from unimi_dl.course import Course, Section
@@ -15,7 +16,9 @@ class ArielSection(Section):
     `self.name` is an identifier for the node
     `self.url` is the url associated to the node
     `self.base_url` is the base url of the node (the part till .it)
-    `self.attachments` is a list of the attachments of the node. At the first call of getAttachments Section will try to retrieve all the attachments of the ArielNode and the children
+    `self.attachments` is a list of the attachments of the node. At the first
+    call of getAttachments Section will try to retrieve all the attachments of
+    the ArielNode and the children
     `self.subsections` is a dictionary with the name and the Section associated with it
     """
 
@@ -81,10 +84,26 @@ class ArielSection(Section):
 class ArielCourse(Course):
     def __init__(self, name: str, teachers: list[str], url: str, edition: str) -> None:
         super().__init__(name=name, teachers=teachers, url=url, edition=edition)
-        self.sections = []  # type: list[Section]
+        self.sections = self.__retrieveSections()
 
     def getSections(self) -> list[Section]:
-        if not self.sections:
-            self.sections = utils.findAllSections(self.base_url)
-
         return self.sections
+
+    def __retrieveSections(self) -> list[Section]:
+        """
+        Finds all the sections of a given course specified in `base_url`.
+        It looks up `CONTENUTI` endpoint and parses the html page
+        """
+        sections = []
+        contents_url = self.base_url + utils.API + utils.CONTENUTI
+        html = utils.getPageHtml(contents_url)
+        page = BeautifulSoup(html, "html.parser")
+        a_tags = page.select("table > tbody > tr > td > h2 > span > a")
+        for a_tag in a_tags:
+            sections.append(
+                ArielSection(
+                    name=a_tag.get_text(),
+                    url=a_tag.attrs['href'],
+                    base_url=self.base_url)
+            )
+        return sections

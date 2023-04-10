@@ -1,13 +1,10 @@
 import re
-from time import sleep
 
 from typing import Tuple
-from urllib.parse import ParseResult
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
-from unimi_dl.course import Section
 import unimi_dl.platform.ariel.ariel_course as ariel_course
 
 from unimi_dl.platform.session_manager.unimi import UnimiSessionManager
@@ -195,7 +192,8 @@ def createCourse(div: Tag) -> Tuple[str, list[str], str, str]:
     Parses a `div` with `class` = ariel-project getting `teachers' name,
     course's name, course's base root url and edition`
 
-    Returns a `name` of course, list of `teacher`, `url` of the course and `edition` of the course
+    Returns a `name` of course, list of `teacher`, `url` of the course and
+    `edition` of the course
     """
     if "ariel-project" not in div["class"]:  # TODO: customize exception
         raise Exception(
@@ -289,24 +287,6 @@ def findAllArielThreadList(html: str) -> list[Tag]:
         if isinstance(tbody, Tag):
             rooms.append(tbody)
     return rooms
-
-
-def findAllSections(base_url: str) -> list[Section]:
-    """
-    Finds all the sections of a given course specified in `base_url`.
-    It looks up `CONTENUTI` endpoint and parses the html page
-    """
-    sections = []  # type: list[Section]
-    url = base_url + API + CONTENUTI
-    html = getPageHtml(url)
-    page = BeautifulSoup(html, "html.parser")
-    a_tags = page.select("table > tbody > tr > td > h2 > span > a")
-    for a_tag in a_tags:
-        sections.append(
-            ariel_course.ArielSection(
-                name=a_tag.get_text(), url=a_tag.attrs['href'], base_url=base_url)
-        )
-    return sections
 
 
 def findAllATags(tr: Tag) -> list[Tag]:
