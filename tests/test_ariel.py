@@ -8,10 +8,10 @@ class TestAriel(unittest.TestCase):
     def setUp(self) -> None:
         username = os.getenv("USERNAME")
         password = os.getenv("PASSWORD")
-        if username == None:
+        if username is None:
             raise EnvironmentError("No Username provided")
 
-        if password == None:
+        if password is None:
             raise EnvironmentError("No Password provided")
 
         self.courses = []

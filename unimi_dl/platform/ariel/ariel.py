@@ -1,11 +1,11 @@
 import logging
 import re
 
-from bs4 import Tag
+from bs4 import BeautifulSoup, Tag
 from unimi_dl.downloadable import Attachment
 from unimi_dl.course import Course
 import urllib.parse
-
+from functools import reduce
 import unimi_dl.platform.ariel.utils as utils
 import unimi_dl.platform.ariel.ariel_course as ariel_course
 
@@ -14,27 +14,20 @@ from ..session_manager.unimi import UnimiSessionManager
 
 
 class Ariel(Platform):
+    courses: list[Course] = []
+
     def __init__(self, email: str, password: str) -> None:
         super().__init__(email, password)
         self.session = UnimiSessionManager.getSession(
             email=email, password=password)
 
-        self.courses = []  # type: list[Course]
+        self.courses = self.__parseCourses()
         self.logger = logging.getLogger(__name__)
         self.logger.info("Logging in")
 
     def getCourses(self) -> list[Course]:
         """Returns a list of `Course` of the accessible courses"""
-        if not self.courses:
-            self.courses = []
-            for course in utils.findAllCourses():
-                name, teachers, url, edition = course
-                self.courses.append(
-                    ariel_course.ArielCourse(
-                        name=name, teachers=teachers, url=url, edition=edition
-                    )
-                )
-        return self.courses.copy()  # it's a shallow copy, need a deep copy maybe?
+        return self.courses
 
     def getAttachments(self, url: str) -> list[Attachment]:
         parsed_url = urllib.parse.urlparse(url)
@@ -74,3 +67,42 @@ class Ariel(Platform):
                 title += "_other"
             res[title] = manifest[0]
         return res
+
+    def __parseCourses(self):
+        html = utils.getPageHtml(utils.OFFERTA_FORMATIVA)
+        page = BeautifulSoup(html, "html.parser")
+        courses_tr_tags = page.select(
+            'table.table:nth-child(1) > tbody:nth-child(1) > tr')
+        courses: list[Course] = reduce(parseCourseReducer, courses_tr_tags, [])
+        return courses
+
+
+def parseCourseReducer(courses: list[Course], course_tr: Tag) -> list[Course]:
+    a_tag = course_tr.select_one(
+        'tr > td:nth-child(2) > table:nth-child(2) > tbody:nth-child(1) > \
+        tr:nth-child(1) > td:nth-child(1) > div:nth-child(1) > h5:nth-child(1) > \
+        span:nth-child(1) > span:nth-child(1) > a:nth-child(2)')
+    if a_tag is None:
+        return courses
+
+    # TODO: filter duplicates
+    teacher_list = course_tr.select(
+        'tr td.col-md-11 ul.list-user a')
+
+    edition_tag = course_tr.select_one(
+        'td:nth-child(2) > table:nth-child(2) > tbody:nth-child(1) > tr:nth-child(1) > \
+        td:nth-child(1) > div:nth-child(1) > div:nth-child(2) > p:nth-child(1) > \
+        small:nth-child(1) > span:nth-child(2)'
+    )
+
+    edition_txt = edition_tag.get_text() if edition_tag else ""
+
+    course_name = a_tag.get_text()
+    course_url = a_tag.attrs['href']
+    course = ariel_course.ArielCourse(
+        name=course_name,
+        url=course_url, teachers=list(
+            map(lambda x: x.get_text(), teacher_list)),
+        edition=edition_txt)
+    courses.append(course)
+    return courses

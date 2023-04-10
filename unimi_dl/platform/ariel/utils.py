@@ -1,11 +1,5 @@
-import re
-
-from typing import Tuple
-
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
-
-import unimi_dl.platform.ariel.ariel_course as ariel_course
 
 from unimi_dl.platform.session_manager.unimi import UnimiSessionManager
 from unimi_dl.downloadable import Attachment
@@ -166,84 +160,9 @@ def getPageHtml(url: str) -> str:
     return r.text
 
 
-def findAllCourses() -> list[Tuple[str, list[str], str, str]]:
-    """
-    Parses the html page corresponding to the accessible courses by the student
-    and retrieves the courses
-    """
-    courses = []
-    html = getPageHtml(OFFERTA_FORMATIVA)
-
-    page = BeautifulSoup(html, "html.parser")
-    courses_table = page.find("table", class_="table")
-    if isinstance(courses_table, Tag):
-        projects = courses_table.find_all("div", class_="ariel-project")
-        for project in projects:
-            if isinstance(project, Tag):
-                courses.append(createCourse(project))
-    else:  # TODO: custom Exception
-        raise Exception("Error while parsing courses. Maybe Tag changed?")
-
-    return courses
-
-
-def createCourse(div: Tag) -> Tuple[str, list[str], str, str]:
-    """
-    Parses a `div` with `class` = ariel-project getting `teachers' name,
-    course's name, course's base root url and edition`
-
-    Returns a `name` of course, list of `teacher`, `url` of the course and
-    `edition` of the course
-    """
-    if "ariel-project" not in div["class"]:  # TODO: customize exception
-        raise Exception(
-            "div class doesn't match 'ariel-project'. Maybe changed?")
-
-    teachers = findAllTeachersName(div)
-    name, url = findCourseNameAndUrl(div)
-    edition = findCourseEdition(div)
-    return name, teachers, url, edition
-
-
-def findAllTeachersName(div: Tag) -> list[str]:
-    regexp = re.compile("/offerta/teacher/*")  # find teachers' name
-    els = div.find_all("a", href=regexp)
-    teachers = []
-    for el in els:
-        if isinstance(el, Tag):
-            teachers.append(el.get_text())
-    return teachers
-
-
-def findCourseNameAndUrl(div: Tag) -> Tuple[str, str]:
-    regexp = re.compile("https://*")  # find course's name and url
-    el = div.find("a", href=regexp)
-    if isinstance(el, Tag):
-        name = el.get_text()
-        href = el["href"]
-        if isinstance(href, list):
-            raise Exception("href shouldn't be a list")
-        return name, href
-    else:
-        raise Exception(
-            "Error on finding course's name and url"
-        )  # TODO: customize exception
-
-
-def findCourseEdition(div: Tag):
-    regexp = re.compile("tag bg-F")  # find course's edition
-    el = div.find("span", class_=regexp)
-    edition = ""
-
-    if isinstance(el, Tag):
-        if isinstance(el.parent, Tag):
-            edition = el.parent.get_text()
-
-    return edition
-
-
 def findAllArielRoomsList(html: str) -> list[Tag]:
     """
+    TODO: should be removed
     Finds all the `tbody` under "Sottoambienti"
     """
     rooms = []

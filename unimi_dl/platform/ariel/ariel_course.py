@@ -22,11 +22,11 @@ class ArielSection(Section):
     `self.subsections` is a dictionary with the name and the Section associated with it
     """
 
-    def __init__(self, name: str, url: str, base_url: str, parent_section=None) -> None:
+    def __init__(self, name: str, url: str, base_url: str) -> None:
         if url.startswith("ThreadList.aspx"):
             url = base_url + utils.API + url
         super().__init__(
-            name=name, url=url, base_url=base_url, parent_section=parent_section
+            name=name, url=url, base_url=base_url
         )
         self.has_subsections = (
             False  # indicates if it already retrieved the available subsections
@@ -76,7 +76,7 @@ class ArielSection(Section):
     def addSection(self, name: str, url: str):
         self.subsections.append(
             ArielSection(
-                name=name, url=url, base_url=self.base_url, parent_section=self
+                name=name, url=url, base_url=self.base_url
             )
         )
         return True
@@ -87,10 +87,10 @@ class ArielCourse(Course):
         super().__init__(name=name, teachers=teachers, url=url, edition=edition)
         self.sections = self.__retrieveSections()
 
-    def getSections(self) -> list[Section]:
+    def getSections(self) -> list[ArielSection]:
         return self.sections
 
-    def __retrieveSections(self) -> list[Section]:
+    def __retrieveSections(self) -> list[ArielSection]:
         """
         Finds all the sections of a given course specified in `base_url`.
         It looks up `CONTENUTI` endpoint and parses the html page
