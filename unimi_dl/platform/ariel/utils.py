@@ -2,6 +2,7 @@ import re
 from time import sleep
 
 from typing import Tuple
+from urllib.parse import ParseResult
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
@@ -250,9 +251,13 @@ def findAllArielRoomsList(html: str) -> list[Tag]:
     rooms = []
     page = BeautifulSoup(html, "html.parser")
     forum_header = page.find("div", id="forum-header")
-    if isinstance(forum_header, Tag):
+    if not isinstance(forum_header, Tag):
+        pass
+    else:
         span = forum_header.find("span", class_="postbody")
-        if isinstance(span, Tag):
+        if not isinstance(span, Tag):
+            pass
+        else:
             a = span.find("a")
             if isinstance(a, Tag):
                 parent = a.parent
@@ -288,34 +293,19 @@ def findAllArielThreadList(html: str) -> list[Tag]:
 
 def findAllSections(base_url: str) -> list[Section]:
     """
-    Finds all the sections of a given course specified in `base_url`
+    Finds all the sections of a given course specified in `base_url`.
+    It looks up `CONTENUTI` endpoint and parses the html page
     """
-    sections = []
+    sections = []  # type: list[Section]
     url = base_url + API + CONTENUTI
     html = getPageHtml(url)
-    tables = findAllArielRoomsList(html)
-
-    if tables == None:
-        return sections
-    trs = []
-    for table in tables:
-        trs = trs + findAllRows(table)
-
-    for tr in trs:
-        a = tr.find("a")
-        if isinstance(a, Tag):
-            href = getTagHref(a)
-
-            if href == "":
-                raise Exception("href shouldn't be empty")
-
-            section_url = base_url + API + href
-            name = a.get_text()
-
-            sections.append(
-                ariel_course.ArielSection(
-                    name=name, url=section_url, base_url=base_url)
-            )
+    page = BeautifulSoup(html, "html.parser")
+    a_tags = page.select("table > tbody > tr > td > h2 > span > a")
+    for a_tag in a_tags:
+        sections.append(
+            ariel_course.ArielSection(
+                name=a_tag.get_text(), url=a_tag.attrs['href'], base_url=base_url)
+        )
     return sections
 
 
