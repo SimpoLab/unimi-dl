@@ -8,10 +8,9 @@ class Section:
     attachments: list[Attachment] = []
     subsections: list[Section] = []
 
-    def __init__(self, name: str, url: str, base_url: str) -> None:
+    def __init__(self, name: str, url: str) -> None:
         self.name = name
         self.url = urlparse(url).geturl()
-        self.base_url = urlparse(base_url).geturl()
 
     def getAllAttachments(self) -> list[Attachment]:
         """

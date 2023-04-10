@@ -23,12 +23,8 @@ class ArielSection(Section):
     `self.subsections` is a dictionary with the name and the Section associated with it
     """
 
-    def __init__(self, name: str, url: str, base_url: str) -> None:
-        if url.startswith("ThreadList.aspx"):
-            url = base_url + utils.API + url
-        super().__init__(
-            name=name, url=url, base_url=base_url
-        )
+    def __init__(self, name: str, url: str) -> None:
+        super().__init__(name=name, url=url)
         self.has_subsections = (
             False  # indicates if it already retrieved the available subsections
         )
@@ -49,7 +45,7 @@ class ArielSection(Section):
                     trs = utils.findAllRows(thread)
                     for tr in trs:
                         self.attachments = self.attachments + utils.findAllAttachments(
-                            tr, self.base_url
+                            tr, self.url
                         )
 
             self.has_attachments = True
@@ -77,7 +73,7 @@ class ArielSection(Section):
     def addSection(self, name: str, url: str):
         self.subsections.append(
             ArielSection(
-                name=name, url=url, base_url=self.base_url
+                name=name, url=url
             )
         )
         return True
@@ -106,11 +102,16 @@ class ArielCourse(Course):
         html = utils.getPageHtml(contents_url)
         page = BeautifulSoup(html, "html.parser")
         a_tags = page.select("table > tbody > tr > td > h2 > span > a")
+        parsed_url = urllib.parse.urlparse(self.url)
+        api_base_url = urllib.parse.urlunparse(
+            (parsed_url.scheme, parsed_url.netloc, utils.API, '', '', ''))
         for a_tag in a_tags:
+            href = a_tag.attrs['href']
+            section_url = urllib.parse.urljoin(api_base_url, href)
             sections.append(
                 ArielSection(
                     name=a_tag.get_text(),
-                    url=a_tag.attrs['href'],
-                    base_url=self.url)
+                    url=section_url,
+                )
             )
         return sections
