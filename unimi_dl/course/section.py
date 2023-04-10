@@ -5,9 +5,6 @@ from unimi_dl.downloadable import Attachment
 
 
 class Section:
-    attachments: list[Attachment] = []
-    subsections: list[Section] = []
-
     def __init__(self, name: str, url: str) -> None:
         self.name = name
         self.url = urlparse(url).geturl()

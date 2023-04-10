@@ -1,6 +1,7 @@
 import os
 from unittest import TestCase
 from unittest import mock
+from unimi_dl.downloadable.attachment import Attachment
 
 
 from unimi_dl.platform.ariel.ariel import Ariel
@@ -33,9 +34,13 @@ class ArielCourseTestCase(TestCase):
                 open(COURSE_SUBSECTION_2_STUB_PATH, 'r') as course_subsection2_page:
 
             mock_getPageHtml.side_effect = [
+                # parse all courses
                 myof.read(),
+                # select main page
                 course_main_page.read(),
+                # click on main page link
                 course_subsection1_page.read(),
+                # clink on subsection 1 link
                 course_subsection2_page.read(),
             ]
 
@@ -48,6 +53,16 @@ class ArielCourseTestCase(TestCase):
 
             print('test_course', test_course)
             self.assertIsInstance(test_course, ArielCourse)
-            for section in test_course.getSections():
-                print('section', section)
-                self.assertIsInstance(section, ArielSection)
+            test_section = next(filter(
+                lambda section: section.name == "Laboratorio 2021/2022 (VECCHIO)",
+                test_course.getSections()))
+            print('test_section', test_section)
+            self.assertIsInstance(test_section, ArielSection)
+            test_subsection = next(filter(
+                lambda subsection: subsection.name == "Turno B - Rivolta",
+                test_section.getSubsections()))
+            print('test_subsection', test_subsection.getAttachments())
+            self.assertIsInstance(test_subsection, ArielSection)
+            for attachment in test_subsection.getAttachments():
+                self.assertIsInstance(attachment, Attachment)
+                print(attachment, '\n\n')

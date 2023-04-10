@@ -26,61 +26,37 @@ class ArielSection(Section):
 
     def __init__(self, name: str, url: str) -> None:
         super().__init__(name=name, url=url)
-        self.has_subsections = (
-            False  # indicates if it already retrieved the available subsections
-        )
-        self.has_attachments = False
+        self.__attachments: list[Attachment] | None = None
+        self.__subsections: list[ArielSection] | None = None
 
     def getAllAttachments(self) -> list[Attachment]:
         attachments = []
-        for child in self.subsections:
+        for child in self.getSubsections():
             attachments = attachments + child.getAttachments()
         return self.getAttachments() + attachments
 
     def getAttachments(self) -> list[Attachment]:
-        if not self.has_attachments:
+        if self.__attachments is None:
+            self.__attachments = []
             html = utils.getPageHtml(self.url)
             threads = utils.findAllArielThreadList(html)  # get threads
             for thread in threads:
                 if isinstance(thread, Tag):
                     trs = utils.findAllRows(thread)
                     for tr in trs:
-                        self.attachments = self.attachments + utils.findAllAttachments(
-                            tr, self.url
-                        )
+                        self.__attachments = self.__attachments +\
+                            utils.findAllAttachments(
+                                tr, self.url
+                            )
+        return self.__attachments
 
-            self.has_attachments = True
-        return self.attachments.copy()
-
-    def getSubsections(self) -> list[Section]:
+    def getSubsections(self):
         # not sure which edge case was handling this
-        html = utils.getPageHtml(self.url)
-        print('html', html)
-        self.sections = parseSections(html, self.url)
-        # if not self.has_subsections:
-        #     html = utils.getPageHtml(self.url)
-        #     rooms = utils.findAllArielRoomsList(html)  # get subsections
-
-        #     for thread in rooms:
-        #         if isinstance(thread, Tag):
-        #             trs = utils.findAllRows(thread)
-        #             for tr in trs:
-        #                 a_tags = utils.findAllATags(tr)
-        #                 for a in a_tags:
-        #                     href = a.get("href")
-        #                     if isinstance(href, str):
-        #                         self.addSection(name=a.get_text(), url=href)
-
-        #     self.has_subsections = True
-        return self.subsections
-
-    def addSection(self, name: str, url: str):
-        self.subsections.append(
-            ArielSection(
-                name=name, url=url
-            )
-        )
-        return True
+        if self.__subsections is None:
+            html = utils.getPageHtml(self.url)
+            self.__subsections = []
+            self.__subsections = parseSections(html, self.url)
+        return self.__subsections
 
 
 class ArielCourse(Course):
@@ -94,7 +70,6 @@ class ArielCourse(Course):
             edition=edition)
 
     def getSections(self) -> list[ArielSection]:
-        test: list[ArielSection] | None = None
         if self.__sections is None:
             self.__sections = self.__retrieveSections()
         return self.__sections
@@ -113,7 +88,6 @@ class ArielCourse(Course):
         contents_url = urllib.parse.urljoin(
             api_base_url, utils.CONTENUTI)
         html = utils.getPageHtml(contents_url)
-        print('html', html)
         sections = parseSections(html, contents_url)
         return sections
 
