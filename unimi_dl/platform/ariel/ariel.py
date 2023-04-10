@@ -3,7 +3,7 @@ import re
 
 from bs4 import BeautifulSoup, Tag
 from unimi_dl.downloadable import Attachment
-from unimi_dl.course import Course
+from unimi_dl.platform.ariel.ariel_course import ArielCourse
 import urllib.parse
 from functools import reduce
 import unimi_dl.platform.ariel.utils as utils
@@ -14,7 +14,7 @@ from ..session_manager.unimi import UnimiSessionManager
 
 
 class Ariel(Platform):
-    courses: list[Course] = []
+    courses: list[ArielCourse] = []
 
     def __init__(self, email: str, password: str) -> None:
         super().__init__(email, password)
@@ -25,7 +25,7 @@ class Ariel(Platform):
         self.logger = logging.getLogger(__name__)
         self.logger.info("Logging in")
 
-    def getCourses(self) -> list[Course]:
+    def getCourses(self) -> list[ArielCourse]:
         """Returns a list of `Course` of the accessible courses"""
         return self.courses
 
@@ -73,11 +73,12 @@ class Ariel(Platform):
         page = BeautifulSoup(html, "html.parser")
         courses_tr_tags = page.select(
             'table.table:nth-child(1) > tbody:nth-child(1) > tr')
-        courses: list[Course] = reduce(parseCourseReducer, courses_tr_tags, [])
+        courses: list[ArielCourse] = reduce(
+            parseCourseReducer, courses_tr_tags, [])
         return courses
 
 
-def parseCourseReducer(courses: list[Course], course_tr: Tag) -> list[Course]:
+def parseCourseReducer(courses: list[ArielCourse], course_tr: Tag):
     a_tag = course_tr.select_one(
         'tr > td:nth-child(2) > table:nth-child(2) > tbody:nth-child(1) > \
         tr:nth-child(1) > td:nth-child(1) > div:nth-child(1) > h5:nth-child(1) > \
@@ -95,7 +96,10 @@ def parseCourseReducer(courses: list[Course], course_tr: Tag) -> list[Course]:
         small:nth-child(1) > span:nth-child(2)'
     )
 
-    edition_txt = edition_tag.get_text() if edition_tag else ""
+    if edition_tag is None:
+        return courses
+
+    edition_txt = edition_tag.get_text()
 
     course_name = a_tag.get_text()
     course_url = a_tag.attrs['href']

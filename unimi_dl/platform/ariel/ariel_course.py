@@ -1,3 +1,4 @@
+import urllib.parse
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
@@ -84,18 +85,23 @@ class ArielSection(Section):
 
 class ArielCourse(Course):
     def __init__(self, name: str, teachers: list[str], url: str, edition: str) -> None:
-        super().__init__(name=name, teachers=teachers, url=url, edition=edition)
+        parsed_url = urllib.parse.urlparse(url)
+        super().__init__(
+            name=name,
+            teachers=teachers,
+            base_url=parsed_url.geturl(),
+            edition=edition)
         self.sections = self.__retrieveSections()
 
     def getSections(self) -> list[ArielSection]:
         return self.sections
 
-    def __retrieveSections(self) -> list[ArielSection]:
+    def __retrieveSections(self):
         """
         Finds all the sections of a given course specified in `base_url`.
         It looks up `CONTENUTI` endpoint and parses the html page
         """
-        sections = []
+        sections: list[ArielSection] = []
         contents_url = self.base_url + utils.API + utils.CONTENUTI
         html = utils.getPageHtml(contents_url)
         page = BeautifulSoup(html, "html.parser")

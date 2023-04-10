@@ -142,17 +142,6 @@ def findPostDescription(tr: Tag) -> str:
     return description
 
 
-def findMessageTitle(tr: Tag) -> str:
-    title = ""
-    h2 = tr.find("h2", class_=["arielTitle", "arielStick"])
-    if isinstance(h2, Tag):
-        spans = h2.select("span")
-        for span in spans:  # title should be the last `span` tag
-            if isinstance(span, Tag):
-                title = span.get_text()
-    return title
-
-
 def getPageHtml(url: str) -> str:
     session = UnimiSessionManager.getSession()
     r = session.get(url)
@@ -216,18 +205,3 @@ def findAllATags(tr: Tag) -> list[Tag]:
             result.append(a)
 
     return result
-
-
-def findTableType(tbody: Tag) -> str:
-    """
-    Return "room" if there are other subsections,
-        "thread" if there are some contents
-    """
-    if tbody.has_attr("class"):
-        if "arielRoomList" in tbody["class"]:
-            return "room"
-
-        if "arielThreadList" in tbody["class"]:
-            return "thread"
-
-    return ""
