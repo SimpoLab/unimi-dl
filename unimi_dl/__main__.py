@@ -18,5 +18,6 @@
 
 from .cmd import main
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    # import unimi_dl.tui
     main()

@@ -2,6 +2,9 @@
 
 
 
+## v0.3.1 minor release
+
+New API for Ariel
 
 ## v0.3.1 minor release
 Installation bugfixes.
