@@ -50,7 +50,7 @@ class Ariel(Platform):
         self.logger.info("Collecting manifests and video names")
         res = {}
         manifest_re = re.compile(
-            r"https://.*?/mp4:.*?([^/]*?)\.mp4/manifest.m3u8")
+            r"https://.*?/mp4:.*?([^/]*?)\.(m4v|mp4)/manifest.m3u8")
         for i, manifest in enumerate(manifest_re.finditer(video_page)):
             title = urllib.parse.unquote(
                 manifest[1]) if manifest[1] else urllib.parse.urlparse(url)[1]+str(i)
